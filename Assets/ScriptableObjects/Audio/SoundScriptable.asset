@@ -36,3 +36,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 795b1fd9ee63b44468a389d4f1246f2b, type: 3}
     - {fileID: 8300000, guid: 0a10aa4b140cee04fa4e02bb51f29d5a, type: 3}
     type: 0
+  - soundID: FireFX_Loop
+    clips:
+    - {fileID: 8300000, guid: aca0c54ff7847c541bb45588679a543e, type: 3}
+    type: 0

@@ -2,12 +2,13 @@ using UnityEngine;
 
 public class TankEngineAudio : MonoBehaviour
 {
-    [SerializeField] float m_IdleRPM = 1000, m_MaxRPM = 5000;
-
+    [Header("---------General----------")]
+    [SerializeField] float m_IdleRPM = 1000;
+    [SerializeField] float m_MaxRPM = 5000;
     [SerializeField] float m_EngineResponse = 2;
-
     [SerializeField] RealisticEngineSound m_EngineSoundModule;
 
+    [Header("---------Track Audio----------")]
     [Tooltip("This is where the wheel track movement sounds will be played")]
     [SerializeField] AudioSource m_TrackAudioSource;
     [Tooltip("This is the speed at which the tank has to be for the track volume to be at its maximum")]

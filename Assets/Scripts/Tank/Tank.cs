@@ -7,6 +7,7 @@
 public class Tank : BaseTank
 {
     Camera m_Camera;
+
     protected override void Awake()
     {
         base.Awake();

@@ -2,9 +2,9 @@
 
 public class ShellProjectile : MonoBehaviour
 {
+    [Header("---------Lifetime----------")]
     [Tooltip("How long is the shell projectile allowed to be alive in the scene without exploding?")]
     [SerializeField] float m_LifeTimeInSeconds = 10.0F;
-
     float m_TimeAlive = 0;
 
     Vector3 m_ForwardDirection, m_SpawnPosition;
@@ -70,7 +70,7 @@ public class ShellProjectile : MonoBehaviour
                         //Place Explosion at the first contact point.
                         GOExplosion.transform.position = collision.contacts[0].point;
                         //Orient it to face the negative normal direction
-                        GOExplosion.transform.forward = -collision.contacts[0].normal;
+                        GOExplosion.transform.forward = collision.contacts[0].normal;
                     }
                     else
                     {

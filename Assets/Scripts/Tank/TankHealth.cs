@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -7,9 +8,11 @@ using UnityEditor;
 /// </summary>
 public class TankHealth : MonoBehaviour
 {
+    [Header("---------General----------")]
     [SerializeField][Range(0, 100)] float m_Health = 100;
     [SerializeField][Range(0, 100)] float m_Armor = 0;
-    [SerializeField][Range(0, 10)] float m_RegenerateRate; //How fast do we regenerate health.
+    [Header("---------Regeneration----------")]
+    [SerializeField][Range(1, 10)] float m_RegenerateRate = 2; //How fast do we regenerate health.
     [SerializeField][Range(0, 100)] float m_RegenerateCap = 50; //How much of the health are we allow to regenerate?
     [SerializeField] bool m_DebugShowValues;
     BaseTank m_Tank;
@@ -61,6 +64,11 @@ public class TankHealth : MonoBehaviour
                 m_Armor = 0;
 
                 m_Health -= leftOverDamage;
+
+                if (m_Health <= 0)
+                {
+                    m_Health = 0;
+                }
 
                 return;
             }

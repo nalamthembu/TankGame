@@ -6,13 +6,16 @@
 /// </summary>
 public class Explosion : MonoBehaviour
 {
+    [Header("---------Lifetime----------")]
     [Tooltip("How long is this explosion allowed to be in the scene after spawning?")]
     [SerializeField][Range(2, 10)] float m_LifeTimeInSeconds = 5.0F;
     [SerializeField][Range(0.1F, 100)] float m_AreaOfAffect = 25.0F;
     [SerializeField][Range(0, 1000)] float m_ExplosionForce = 150.0F;
+    [Header("---------Camera FX----------")]
     [Tooltip("How intense the camera shake is when the explosion happens right next to it")]
     [SerializeField][Range(0, 100)] float m_CameraShakeIntensityAtPointBlank = 10.0F;
     [SerializeField][Range(0, 100)] float m_MaximumCameraShakeDistance = 50.0F;
+    [Header("---------Damage----------")]
     [Tooltip("How match damage will this inflict on anything in the area of affect radius?")]
     [SerializeField][Range(0, 100)] float m_Damage = 30.0F;
 
