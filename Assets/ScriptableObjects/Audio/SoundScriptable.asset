@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 616c9600186ea90478c3f84a8b92395d, type: 3}
+  m_Name: SoundScriptable
+  m_EditorClassIdentifier: 
+  sounds:
+  - soundID: TankFX_Shot
+    clips:
+    - {fileID: 8300000, guid: 146acfc204b350c4e978217e70a2cb4c, type: 3}
+    type: 0
+  - soundID: TankFX_Shot_Thump
+    clips:
+    - {fileID: 8300000, guid: 44e79d6ff7c18b8479e7366b447d6825, type: 3}
+    type: 0
+  - soundID: TankFX_TrackLoop
+    clips:
+    - {fileID: 8300000, guid: 1e2f99691fc72f44b8a8219fcf087a32, type: 3}
+    type: 0
+  - soundID: TankFX_Rotate
+    clips:
+    - {fileID: 8300000, guid: 813c7cc0f3dc05f4682ed6d49cf18d16, type: 3}
+    type: 0
+  - soundID: Explosion
+    clips:
+    - {fileID: 8300000, guid: f6b14854095f19b49b3620cdc7c26121, type: 3}
+    - {fileID: 8300000, guid: 1510d9c1a0e80a445816653373585dac, type: 3}
+    - {fileID: 8300000, guid: 795b1fd9ee63b44468a389d4f1246f2b, type: 3}
+    - {fileID: 8300000, guid: 0a10aa4b140cee04fa4e02bb51f29d5a, type: 3}
+    type: 0
