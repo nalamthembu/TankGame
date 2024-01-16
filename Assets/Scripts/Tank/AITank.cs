@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using UnityEngine.AI;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -7,14 +8,18 @@ using UnityEditor;
 /// <summary>
 /// This is a child class of base tank and contains logic for AI controlled tanks.
 /// </summary>
+/// 
+[RequireComponent(typeof(ObstacleAvoidance))]
 public class AITank : BaseTank
 {
     [Header("----------AI Controls----------")]
     [Tooltip("How often should this tank check for surrounding enemies?")]
-    [SerializeField] float m_PerimeterCheckFrequency = 3;
-    [SerializeField] float m_CheckRadius = 40.0F;
+    [SerializeField]  float m_PerimeterCheckFrequency = 3;
+    [Tooltip("How often should we check if the path is still good?")]
+    [SerializeField][Min(1)]  float m_PathCheckFrequency = 1;
+    [SerializeField]  float m_CheckRadius = 40.0F;
     [SerializeField] LayerMask m_TankLayerMask;
-    [SerializeField] float m_MaxSpeed = 80;
+    [SerializeField]  float m_MaxSpeed = 80;
     [Tooltip("How long should the AI wait before attempting to reverse?")]
     [SerializeField] float m_ReverseWaitTime = 10;
     float m_PerimeterCheckTimer = 0;
@@ -23,10 +28,12 @@ public class AITank : BaseTank
     [Tooltip("How often should we fire at our enemy?")]
     //0.25 would be you fire every .25 seconds, keep in mind though, this will be limited
     //by the reload time, so if you say .25 seconds that just means the tank will fire as often as it can.
-    [SerializeField] [Min(0.1F)] float m_FireRateInSeconds = 2; 
+    [SerializeField] [Min(0.1F)] float m_FireRateInSeconds = 2;
 
     //This is where the AI chose to roam to.
     Vector3 m_ChosenDestination;
+    NavMeshPath m_NavMeshPath;
+    float pathCheckTimer = 0;
 
     //Flags
     bool m_IsCheckingForEnemies;
@@ -46,14 +53,29 @@ public class AITank : BaseTank
 
     List<BaseTank> m_EnemyTanks;
 
+    ObstacleAvoidance m_ObstacleAvoidance;
+
     //An artificial Accelerator (gas pedal)
-    public float Throttle { get; private set; }
+    public float Throttle { get; set; }
+
+    public float SteerDir { get; set; }
 
     protected override void Awake()
     {
         base.Awake();
 
+        m_NavMeshPath = new();
+
         m_EnemyTanks = new();
+
+        m_ObstacleAvoidance = GetComponent<ObstacleAvoidance>();
+
+        if (m_ObstacleAvoidance is null)
+        {
+            Debug.LogError("There has to be an obstacle avoidance component on this tank!");
+
+            enabled = false;
+        }
     }
 
     protected override void Update()
@@ -159,15 +181,25 @@ public class AITank : BaseTank
         if (!m_HasDestination)
         {
             //find a place to go...
-            m_ChosenDestination = Vector3.one * Random.Range(-1000, 1000);
+            m_ChosenDestination = Vector3.one * Random.Range(-250, 250);
 
             //Make sure you find a place on the ground...
             m_ChosenDestination.y = 0;
+
+            if (NavMesh.SamplePosition(m_ChosenDestination, out NavMeshHit hit, 10.0F, NavMesh.AllAreas))
+            {
+                m_ChosenDestination = hit.position;
+            }
+
+            //Calculate a path
+            CalculatePath();
 
             m_HasDestination = true;
         }
         else
         {
+            CalculatePath();
+
             //Apply pressure on throttle depending on how far you are from the destination...
             ApplyThrottle(Speed >= m_MaxSpeed ? 0.1F : Mathf.Lerp(0, 1, Mathf.Clamp01(GetDistanceFromDestination())));
 
@@ -179,7 +211,22 @@ public class AITank : BaseTank
         }
     }
 
-    private float ApplyThrottle(float amountBetweenZeroAndOne) => Throttle = amountBetweenZeroAndOne; 
+    private void CalculatePath()
+    {
+        pathCheckTimer += Time.deltaTime;
+
+        if (pathCheckTimer >= m_PathCheckFrequency)
+        {
+            NavMesh.CalculatePath(transform.position, m_ChosenDestination, NavMesh.AllAreas, m_NavMeshPath);
+
+            pathCheckTimer = 0;
+
+            print(m_NavMeshPath.corners.Length);
+        }
+    }
+
+    private float ApplyThrottle(float amountBetweenZeroAndOne) => Throttle = amountBetweenZeroAndOne;
+    public void ApplySteer(float steerDir) => SteerDir = Mathf.Clamp(steerDir, -1, 1);
 
     private float GetDistanceFromDestination() => Vector3.Distance(transform.position, m_ChosenDestination);
 
@@ -212,29 +259,29 @@ public class AITank : BaseTank
 
             for (int i = 0; i < m_Wheels.Length; i++)
             {
-                //If the current wheel is a steering wheel...
-                if (m_Wheels[i].IsSteeringWheel)
-                {
-                    //Steer to the destination IF we have one...
-                    if (m_HasDestination)
+                    //If the current wheel is a steering wheel and the obstacle avoidance isn't overriding the steering controls...
+                    if (m_Wheels[i].IsSteeringWheel && m_ObstacleAvoidance && !m_ObstacleAvoidance.OverrideSteering)
                     {
-                        Vector3 steerVector;
+                        //Steer to the destination IF we have one...
+                        if (m_HasDestination)
+                        {
+                            Vector3 steerVector;
 
-                        steerVector = transform.InverseTransformPoint
-                                (
-                                    new
-                                        (
-                                            m_ChosenDestination.x,
-                                            transform.position.y,
-                                            m_ChosenDestination.z
-                                        )
-                                );
+                            steerVector = transform.InverseTransformPoint
+                                    (
+                                        new
+                                            (
+                                                m_ChosenDestination.x,
+                                                transform.position.y,
+                                                m_ChosenDestination.z
+                                            )
+                                    );
 
-                        float steerDirection = steerVector.x / steerVector.magnitude;
+                            float steerDirection = steerVector.x / steerVector.magnitude;
 
-                        m_Wheels[i].SetSteerAngle(steerDirection * m_MaxSteerAngle);
+                            m_Wheels[i].SetSteerAngle(steerDirection * m_MaxSteerAngle);
+                        }
                     }
-                }
 
                 //if not then every other wheel including the steering wheel should put down power.
                 m_Wheels[i].SetMotorTorque(m_MotorTorque);
@@ -295,9 +342,24 @@ public class AITank : BaseTank
         }
     }
 
+    private void OnDrawGizmos()
+    {
+        //Show the developer the path...
+        if (m_NavMeshPath != null)
+        {
+            for (int i = 0; i < m_NavMeshPath.corners.Length - 1; i++)
+            {
+                Debug.DrawLine(m_NavMeshPath.corners[i], m_NavMeshPath.corners[i + 1], Color.red);
+            }
+        }
+    }
+
+
     protected override void OnDrawGizmosSelected()
     {
         base.OnDrawGizmosSelected();
+
+
 #if UNITY_EDITOR
         if (m_DebugShowValues)
         {
