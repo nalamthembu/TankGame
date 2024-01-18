@@ -22,7 +22,7 @@ MonoBehaviour:
   sampleCount:
     overrideState: 1
     value: 32
---- !u!114 &-2237823201468911820
+--- !u!114 &-1988990656332073991
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,16 +40,16 @@ MonoBehaviour:
     value: 1
   focusDistance:
     overrideState: 1
-    value: 2.15
+    value: 9.51
   aperture:
     overrideState: 1
-    value: 11.1
+    value: 1.2
   focalLength:
     overrideState: 1
-    value: 178
+    value: 74
   kernelSize:
     overrideState: 1
-    value: 2
+    value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,5 +63,5 @@ MonoBehaviour:
   m_Name: CamShakePostFX
   m_EditorClassIdentifier: 
   settings:
-  - {fileID: -2237823201468911820}
+  - {fileID: -1988990656332073991}
   - {fileID: -8608504872445758044}

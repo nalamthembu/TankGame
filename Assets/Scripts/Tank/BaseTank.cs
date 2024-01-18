@@ -74,6 +74,9 @@ public class BaseTank : MonoBehaviour
 
     private void OnValidate()
     {
+        if (Application.isPlaying)
+            return;
+
         if (!m_RigidBody && TryGetComponent<Rigidbody>(out var rigidbody))
             m_RigidBody = rigidbody;
 
@@ -96,9 +99,12 @@ public class BaseTank : MonoBehaviour
                 Debug.LogWarning("Setting Centre of mass to Zero");
             }
 
-            //Give it some drag
-            Debug.LogWarning("Setting Drag to 0.25");
-            m_RigidBody.drag = 0.25F;
+            if (m_RigidBody.drag < 0.25F)
+            {
+                //Give it some drag
+                Debug.LogWarning("Setting Drag to 0.25");
+                m_RigidBody.drag = 0.25F;
+            }
         }
 
         if (m_MaxClip <= 0)

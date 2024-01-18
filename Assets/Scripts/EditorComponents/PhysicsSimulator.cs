@@ -29,6 +29,7 @@ public class PhysicsSimulation : MonoBehaviour
     }
 
     [ContextMenu("Run Simulation")]
+    [System.Obsolete]
     public void RunSimulation()
     {
         AutoGenerateComponents();

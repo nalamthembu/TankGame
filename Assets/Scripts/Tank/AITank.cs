@@ -13,8 +13,6 @@ using UnityEditor;
 public class AITank : BaseTank
 {
     [Header("----------AI Controls----------")]
-    [Tooltip("How often should this tank check for surrounding enemies?")]
-    [SerializeField]  float m_PerimeterCheckFrequency = 3;
     [Tooltip("How often should we check if the path is still good?")]
     [SerializeField][Min(1)]  float m_PathCheckFrequency = 5.0F;
     [Tooltip("How long should we wait before resetting the AI when it gets stuck?")]
@@ -35,6 +33,11 @@ public class AITank : BaseTank
     [SerializeField] [Min(0.1F)] float m_FireRateInSeconds = 2;
     [Tooltip("How far should we look for enemies?")]
     [SerializeField] float m_CheckRadius = 40.0F;
+    [Tooltip("How often should this tank check for surrounding enemies?")]
+    [SerializeField] float m_PerimeterCheckFrequency = 3;
+    [Tooltip("How far is the enemy allowed to be before we stop and look for another?")]
+    [SerializeField] float m_MaxDistanceFromEnemy = 50.0F;
+    [SerializeField] float m_ShootingRange = 40.0F;
 
     [Header("----------Debugging----------")]
     [Tooltip("Do you want the tank to stop moving forward?")]
@@ -62,15 +65,19 @@ public class AITank : BaseTank
     float m_FireRateTimer;
     float m_ResetTimer;
     float m_ReverseTimer = 0;
+    float m_PathCheckTimer = 0;
     
 
+
+    //Combat
     //Sqr Distance to save up on performance, I don't need the exact distance...
     float m_ClosestEnemySqrDistance;
     //I don't want to make a copy of a tank just to use as a ref.
     int m_ClosestEnemyIndex; 
-
     List<BaseTank> m_EnemyTanks;
+    BaseTank m_ClosestEnemyTank;
 
+    //Navigation
     ObstacleAvoidance m_ObstacleAvoidance;
 
     //An artificial Accelerator (gas pedal)
@@ -104,28 +111,149 @@ public class AITank : BaseTank
     {
         base.Update();
 
+        if (m_IsCheckingForEnemies)
+        {
+            CheckForEnemies();
+        }
+
         if (m_IsFightingEnemies)
         {
             EliminateEnemies();
         }
         else
         {
-            CheckForEnemies();
-
             DoRandomRoaming();
         }
     }
 
     private void CheckForEnemies()
     {
+        m_PerimeterCheckTimer += Time.deltaTime;
 
+        if (m_PerimeterCheckTimer >= m_PerimeterCheckFrequency)
+        {
+            if (m_EnemyTanks.Count > 0)
+                m_EnemyTanks.Clear();
+
+            m_IsCheckingForEnemies = true;
+
+            Collider[] tankColliders = Physics.OverlapSphere(transform.position, m_CheckRadius, m_TankLayerMask);
+
+            foreach (Collider collider in tankColliders)
+            {
+                if (collider.TryGetComponent<BaseTank>(out var tankComponent))
+                {
+                    //DO NOT include yourself as an enemy...
+                    if (tankComponent.GetInstanceID() == this.GetInstanceID())
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        m_EnemyTanks.Add(tankComponent);
+                    }
+                }
+            }
+
+            //if we have found some enemies...lets fight!
+            if (m_EnemyTanks.Count > 0)
+            {
+                m_IsFightingEnemies = true;
+                m_HasDestination = false;
+                m_IsCheckingForEnemies = false;
+                m_ClosestEnemyTank = null;
+            }
+
+            m_PerimeterCheckTimer  = 0;
+        }
     }
 
 
     //Eliminate your enemies!
     private void EliminateEnemies()
     {
-        
+        if (m_ClosestEnemyTank == null && !m_HasDestination)
+        {
+            m_HasStartedAlongThePath = false;
+            m_ClosestEnemyIndex = FindClosestEnemyIndex();
+            m_ClosestEnemyTank = m_EnemyTanks[m_ClosestEnemyIndex];
+            CheckIfTargetDestinationIsValid(m_ClosestEnemyTank.transform.position);
+        }
+        else
+        {
+            RecalculatePath(m_ClosestEnemyTank.transform.position);
+            TravelAlongPath();
+
+            //If we are too far from the enemy...
+            float distanceFromClosestTank = Vector3.Distance(transform.position, m_ClosestEnemyTank.transform.position);
+            if (distanceFromClosestTank >= m_MaxDistanceFromEnemy)
+            {
+                //Leave them alone, find a new enemy...
+                m_HasStartedAlongThePath = false;
+                m_IsFightingEnemies = false;
+                m_IsCheckingForEnemies = true;
+                m_HasDestination = false;
+                m_ClosestEnemyTank = null;
+
+                return;
+            }
+
+            RotateTurret(m_ClosestEnemyTank.transform.position);
+
+            m_FireRateTimer += Time.deltaTime;
+
+            if (m_FireRateTimer >= m_FireRateInSeconds)
+            {
+                Vector3 dirToTarget = (m_ClosestEnemyTank.transform.position + Vector3.up / 2 - transform.position).normalized;
+
+                Debug.DrawLine(m_TurretTransform.position, dirToTarget * distanceFromClosestTank, Color.red);
+
+                Fire(dirToTarget);
+
+                m_FireRateTimer = 0;
+            }
+        }
+    }
+
+    private void RecalculatePath(Vector3 targetLocation)
+    {
+        if (m_WayPoints.Count > 0)
+        {
+            m_PathCheckTimer += Time.deltaTime;
+
+            if (m_PathCheckTimer >= m_PathCheckFrequency)
+            {
+                CheckIfTargetDestinationIsValid(targetLocation);
+
+                m_PathCheckTimer = 0;
+            }
+        }
+    }
+
+    private int FindClosestEnemyIndex()
+    {
+        for (int i = 0; i < m_EnemyTanks.Count; i++)
+        {
+            //Exclude yourself from enemy list...
+            if (m_EnemyTanks[i] == this)
+            {
+                continue;
+            }
+
+            float currentClosestSqrDist = (m_EnemyTanks[i].transform.position - transform.position).sqrMagnitude;
+
+            currentClosestSqrDist = Mathf.Abs(currentClosestSqrDist);
+
+            if (currentClosestSqrDist < m_ClosestEnemySqrDistance)
+            {
+
+                m_ClosestEnemySqrDistance = currentClosestSqrDist;
+
+                return i;
+            }
+        }
+
+        return 0;
     }
 
     //Pick a random point and roam around there
@@ -143,48 +271,62 @@ public class AITank : BaseTank
                 z = Random.Range(-250, 250)
             };
 
-            //check with the nav mesh...
-            if (NavMesh.SamplePosition(m_TargetDestination, out NavMeshHit hit, 10.0F, NavMesh.AllAreas))
-            {
-                m_TargetDestination = hit.position;
-                //Calculate a path...
-                CalculatePath();
-                m_HasDestination = true;
-            }
+            CheckIfTargetDestinationIsValid(m_TargetDestination);
         }
         else
         {
+            TravelAlongPath();
+
+            m_IsCheckingForEnemies = true;
+        }
+    }
+
+    private void CheckIfTargetDestinationIsValid(Vector3 targetDestination)
+    {
+
+        //check with the nav mesh...
+        if (NavMesh.SamplePosition(targetDestination, out NavMeshHit hit, 10.0F, NavMesh.AllAreas))
+        {
+            m_TargetDestination = hit.position;
+            //Calculate a path...
+            CalculatePath();
+            m_HasDestination = true;
             m_HasStartedAlongThePath = true;
+        }
+    }
 
-            float distanceFromTarget = Vector3.Distance(transform.position, m_TargetDestination);
+    private void TravelAlongPath()
+    {
+        m_HasStartedAlongThePath = true;
 
-            int minDistance = 10;
+        float distanceFromTarget = Vector3.Distance(transform.position, m_TargetDestination);
 
-            float throttle = Mathf.Lerp(0, 1, distanceFromTarget / minDistance);
+        int minDistance = 10;
 
-            ApplyThrottle(throttle);
+        float throttle = Mathf.Lerp(0, 1, distanceFromTarget / minDistance);
 
-            if (GetDistanceFromNextWaypointOnPath() <= minDistance)
+        ApplyThrottle(throttle);
+
+        if (GetDistanceFromNextWaypointOnPath() <= minDistance)
+        {
+            m_IndexAlongPath++;
+
+            if (m_IndexAlongPath > m_WayPoints.Count - 1 || m_WayPoints.Count <= 0)
             {
-                m_IndexAlongPath++;
-
-                if (m_IndexAlongPath > m_WayPoints.Count - 1 || m_WayPoints.Count <= 0)
-                {
-                    m_HasDestination = false;
-
-                    m_IndexAlongPath = 0;
-                }
-                else
-                {
-                    m_DestinationAlongPath = m_WayPoints[m_IndexAlongPath];
-                }
-            }
-
-            if (distanceFromTarget <= minDistance)
-            {
-                //FIND A NEW PLACE TO GO...
                 m_HasDestination = false;
+
+                m_IndexAlongPath = 0;
             }
+            else
+            {
+                m_DestinationAlongPath = m_WayPoints[m_IndexAlongPath];
+            }
+        }
+
+        if (distanceFromTarget <= minDistance)
+        {
+            //FIND A NEW PLACE TO GO...
+            m_HasDestination = false;
         }
     }
 
@@ -222,7 +364,7 @@ public class AITank : BaseTank
     void CheckIfTankIsStuck()
     {
         //If the AI gets stuck for whatever reason
-        if (Mathf.Round(Speed) <= 0 && Mathf.Abs(Mathf.Round(GetAverageRPM())) > 5)
+        if (Mathf.Round(Speed) <= 0 && Mathf.Abs(Throttle) > 0 && m_IsReversing == false)
         {
             m_ResetTimer += Time.deltaTime;
 
@@ -232,20 +374,29 @@ public class AITank : BaseTank
 
                 randomPosition.y = 0;
 
-                if (NavMesh.SamplePosition(randomPosition, out var hit, 1000.0F, NavMesh.AllAreas))
-                {
-                    //Place the tank in a random position around itself and look toward the next check point.
-
-                    transform.SetPositionAndRotation(hit.position, Quaternion.LookRotation(m_DestinationAlongPath, transform.up));
-
+                if (TryTeleportTank(randomPosition))
                     m_ResetTimer = 0;
-                }
             }
         }
         else
         {
             m_ResetTimer = 0;
         }
+    }
+
+    //Will return true of position is a valid position on the navmesh....
+    bool TryTeleportTank(Vector3 position)
+    {
+        if (NavMesh.SamplePosition(position, out var hit, 1000.0F, NavMesh.AllAreas))
+        {
+            //Place the tank in a random position around itself and look toward the next check point.
+
+            transform.SetPositionAndRotation(hit.position, Quaternion.LookRotation(m_DestinationAlongPath, transform.up));
+
+            return true;
+        }
+
+        return false;
     }
 
     void CheckIfTankIsStoppedButCanReverse()
@@ -271,7 +422,7 @@ public class AITank : BaseTank
 
     protected override void MoveWheels()
     {
-        //CheckIfTankIsStuck();
+        CheckIfTankIsStuck();
 
         CheckIfTankIsStoppedButCanReverse();
 
@@ -285,57 +436,59 @@ public class AITank : BaseTank
                 m_TorqueResponseTime
             );
 
-            m_MotorTorque *= Throttle;
-
-            if (m_IsReversing)
-                m_MotorTorque = -m_MotorTorque;
-
-            print(m_MotorTorque);
+            if (m_KillThrottle || Speed > m_MaxSpeed * 1.25F)
+            {
+                m_MotorTorque *= 0;
+            }
 
             for (int i = 0; i < m_Wheels.Length; i++)
             {
-                if (!m_KillThrottle)
-                    m_Wheels[i].SetMotorTorque(m_MotorTorque);
-                else
-                    m_Wheels[i].SetMotorTorque(0);
 
-                m_Wheels[i].SetBrakeTorque(m_BrakeTorque);
-
-
-                //Steer
-                Vector3 steerVector;
-
-                float steerDirection;
-
-                steerVector = transform.InverseTransformPoint
-                        (
-                            new
-                                (
-                                    m_DestinationAlongPath.x,
-                                    transform.position.y,
-                                    m_DestinationAlongPath.z
-                                )
-                        );
-
-                steerDirection = steerVector.x / steerVector.magnitude;
-
-                //If we're reversing, steering the other direction....
-                if (m_IsReversing)
-                {
-                    steerDirection = -steerDirection;
-
-                    if (GetDistanceSinceStartOfReverse() >= m_MaxReverseDistance)
-                    {
-                        m_IsReversing = false;
-                    }
-                }
-                
-
-                if (!m_ObstacleAvoidance.OverrideSteering || !m_KillSteering)
-                    ApplySteer(steerDirection);
+                m_Wheels[i].SetMotorTorque(m_IsReversing ? m_MotorTorque * -1 : m_MotorTorque * Throttle);
 
                 if (m_Wheels[i].IsSteeringWheel)
-                    m_Wheels[i].SetSteerAngle(SteerDir * m_MaxSteerAngle);
+                {
+
+                    //Steer
+                    Vector3 steerVector;
+
+                    float steerDirection;
+
+                    steerVector = transform.InverseTransformPoint
+                            (
+                                new
+                                    (
+                                        m_DestinationAlongPath.x,
+                                        transform.position.y,
+                                        m_DestinationAlongPath.z
+                                    )
+                            );
+
+                    steerDirection = steerVector.x / steerVector.magnitude;
+
+                    //If we're reversing, steering the other direction....
+                    if (m_IsReversing)
+                    {
+                        if (!m_ObstacleAvoidance.OverrideSteering)
+                            ApplySteer(steerDirection * -1);
+
+                        if (m_Wheels[i].IsSteeringWheel)
+                            m_Wheels[i].SetSteerAngle(SteerDir * m_MaxSteerAngle);
+
+                        if (GetDistanceSinceStartOfReverse() >= m_MaxReverseDistance)
+                        {
+                            m_IsReversing = false;
+                        }
+                    }
+                    else
+                    {
+                        if (!m_ObstacleAvoidance.OverrideSteering)
+                        {
+                            ApplySteer(steerDirection);
+                            m_Wheels[i].SetSteerAngle(SteerDir * m_MaxSteerAngle);
+                        }
+                    }
+                }
             }
         }
         else Debug.LogError("There are no wheels assigned on this AI!");
@@ -378,7 +531,7 @@ public class AITank : BaseTank
             };
 
             style.normal.textColor = m_IsReloading ? Color.yellow : Color.white;
-            Handles.Label(transform.position + (transform.up * 4) + transform.right, info, style);
+            Handles.Label(transform.position + (transform.up * 8) + transform.right, info, style);
         }
 #endif
 

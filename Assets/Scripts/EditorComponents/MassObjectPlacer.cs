@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -36,6 +37,7 @@ public class MassObjectPlacer : MonoBehaviour
     }
 
     [ContextMenu("Spawn Items")]
+    [System.Obsolete]
     private void SpawnItems()
     {
         if (m_SpawnedObjects.Count > 0)
@@ -143,3 +145,4 @@ public class MassObjectPlacer : MonoBehaviour
         public int amount;
     }
 }
+#endif

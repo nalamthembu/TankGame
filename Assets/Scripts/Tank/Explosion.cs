@@ -66,7 +66,7 @@ public class Explosion : MonoBehaviour
             {
                 //Do the shake fx based on how far this object is from it...
                 float postFXIntensity = m_MaximumCameraShakeDistance / distanceFromCamera;
-                PostProcessManager.Instance.TriggerCameraShakeFX(camShakeDuration * 2, postFXIntensity);
+                PostProcessManager.Instance.TriggerCameraShakeFX(camShakeDuration * 4, postFXIntensity);
             }
             else
                 Debug.LogError("Post Process Manager Instance is non existent!");
@@ -102,7 +102,7 @@ public class Explosion : MonoBehaviour
                         {
                             //Damage is scaled by how far you are from ground zero...
 
-                            float damageScalar = Mathf.Clamp01(hit.distance / m_AreaOfAffect);
+                            float damageScalar = Mathf.Clamp01(m_AreaOfAffect / hit.distance);
                            
                             tankHealth.TakeDamage(m_Damage * damageScalar);
                         }
@@ -114,7 +114,10 @@ public class Explosion : MonoBehaviour
 
         //Play Sound
         if (SoundManager.Instance)
+        {
             SoundManager.Instance.PlayInGameSound("Explosion", transform.position, true, 30.0F);
+            SoundManager.Instance.PlayInGameSound("ExplosionSweetener", transform.position, true, 150.0F);
+        }
         else
             Debug.LogError("There is no Sound Manager in the scene!");
     }

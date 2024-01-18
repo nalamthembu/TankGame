@@ -40,3 +40,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: aca0c54ff7847c541bb45588679a543e, type: 3}
     type: 0
+  - soundID: ExplosionSweetener
+    clips:
+    - {fileID: 8300000, guid: eae7b257b6ab11f4a87d64f7ddbee4c4, type: 3}
+    type: 0
