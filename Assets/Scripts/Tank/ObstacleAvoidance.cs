@@ -7,12 +7,17 @@ using UnityEditor;
 public class ObstacleAvoidance : MonoBehaviour
 {
     [Header("----------General----------")]
-
     [SerializeField] Sensor[] m_Sensors;
-
+    [SerializeField] [Min(0.01F)] float m_CountersteerIntensity = 1;
+    [SerializeField] [Min(0.01F)] float m_BrakeIntensity = 1;
     AITank m_Tank;
 
+    [Header("----------Debugging----------")]
+    [SerializeField] bool m_IsDebuggingEnabled = false;
+    [SerializeField] bool m_ShowEvenWhenNotSelected = false;
+
     public bool OverrideSteering { get; private set; }
+    public bool OverrideBrake { get; private set; }
 
     private void Awake()
     {
@@ -28,6 +33,9 @@ public class ObstacleAvoidance : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (m_Tank.IsReversing)
+            return;
+
         DoAvoidObstacles();
     }
 
@@ -35,45 +43,86 @@ public class ObstacleAvoidance : MonoBehaviour
     {
         float steeringToApply = 0;
 
+        float brakeToApply = 0;
+
         OverrideSteering = false;
+        OverrideBrake = false;
 
-        foreach (Sensor sensor in m_Sensors)
+        for (int i = 0; i < m_Sensors.Length; i++)
         {
-            OverrideSteering = sensor.HasHitSomething;
+            m_Sensors[i].DetectCollision();
+            OverrideSteering = m_Sensors[i].HasHitSomething;
+            OverrideBrake = m_Sensors[i].HasHitSomething;
 
-            if (sensor.HasHitSomething)
+            if (m_Sensors[i].HasHitSomething)
             {
-                switch (sensor.dectorType)
+                //Steering...
+                switch (m_Sensors[i].dectorType)
                 {
                     case Sensor.DetectorType.LEFT:
                     case Sensor.DetectorType.CORNERLF:
+                    case Sensor.DetectorType.CORNERFWDL:
 
-                        steeringToApply += -sensor.SteerAmount;
+                        steeringToApply += m_Sensors[i].SteerAmount * m_CountersteerIntensity;
 
                         break;
 
                     case Sensor.DetectorType.RIGHT:
                     case Sensor.DetectorType.CORNERRF:
+                    case Sensor.DetectorType.CORNERFWDR:
 
-                        steeringToApply += sensor.SteerAmount;
+                        steeringToApply -= m_Sensors[i].SteerAmount * m_CountersteerIntensity;
+
+                        break;
+                }
+
+                //Braking
+                switch (m_Sensors[i].dectorType)
+                {
+                    case Sensor.DetectorType.CORNERLF:
+                    case Sensor.DetectorType.CORNERFWDL:
+
+                        brakeToApply += m_Sensors[i].BrakeAmount * m_BrakeIntensity;
+
+                        break;
+
+                    case Sensor.DetectorType.CORNERRF:
+                    case Sensor.DetectorType.CORNERFWDR:
+
+                        brakeToApply += m_Sensors[i].BrakeAmount * m_BrakeIntensity;
 
                         break;
                 }
             }
         }
 
-        steeringToApply = Mathf.Clamp(-steeringToApply, -1, 1);
-
         m_Tank.ApplySteer(steeringToApply);
     }
 
     private void OnDrawGizmosSelected()
     {
+        if (!m_IsDebuggingEnabled)
+            return;
+
         if (m_Sensors != null && m_Sensors.Length > 0)
         {
-            for (int i = 0; i < m_Sensors.Length; i++)
+            foreach(Sensor sensor in m_Sensors)
             {
-                m_Sensors[i].OnDrawGizmosSelected();
+                sensor.OnDrawGizmosSelected();
+            }
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (!m_IsDebuggingEnabled && !m_ShowEvenWhenNotSelected)
+            return;
+
+        if (m_Sensors != null && m_Sensors.Length > 0)
+        {
+            foreach (Sensor sensor in m_Sensors)
+            {
+                sensor.OnDrawGizmos();
             }
         }
     }
@@ -88,7 +137,9 @@ public class ObstacleAvoidance : MonoBehaviour
             LEFT,
             RIGHT,
             CORNERLF,
-            CORNERRF
+            CORNERRF,
+            CORNERFWDL,
+            CORNERFWDR
         }
 
         public DetectorType dectorType;
@@ -101,7 +152,13 @@ public class ObstacleAvoidance : MonoBehaviour
 
         public float SteerAmount { get; private set; }
 
+        public float BrakeAmount { get; private set; }
+
+
         private bool m_HasHitSomething;
+
+        //On a scale of 0 and 1 how close are we from the obstacle?
+        public float PercentageDistFromObstacle { get; private set; }
 
         public bool HasHitSomething { get { return m_HasHitSomething; } }
 
@@ -111,7 +168,11 @@ public class ObstacleAvoidance : MonoBehaviour
             {
                 HitPoint = hit.point;
 
-                SteerAmount = Mathf.InverseLerp(1, 0, hit.distance / maxDistance);
+                PercentageDistFromObstacle = Mathf.InverseLerp(1, 0, hit.distance / maxDistance);
+
+                SteerAmount = PercentageDistFromObstacle;
+
+                BrakeAmount = PercentageDistFromObstacle;
 
                 m_HasHitSomething = true;
             }
@@ -119,17 +180,18 @@ public class ObstacleAvoidance : MonoBehaviour
             {
                 SteerAmount = 0;
 
+                BrakeAmount = 0;
+
                 m_HasHitSomething = false;
             }
         }
 
+        public void OnDrawGizmos() => ShowDebugGizmos();
 
-#if UNITY_EDITOR
+        public void OnDrawGizmosSelected() => ShowDebugGizmos();
 
-        public void OnDrawGizmosSelected()
+        private void ShowDebugGizmos()
         {
-            DetectCollision();
-
             Gizmos.color = Color.green;
 
             Vector3 end = transform.position + transform.forward * maxDistance;
@@ -140,12 +202,12 @@ public class ObstacleAvoidance : MonoBehaviour
 
             Gizmos.DrawWireCube(m_HasHitSomething ? HitPoint : end, Vector3.one * 0.25F);
 
+#if UNITY_EDITOR            
             Vector3 labelPos = transform.position + transform.forward * maxDistance / 2;
-
-            Handles.Label(labelPos, "Steer Amount : " + SteerAmount); 
+            Handles.Label(labelPos, "Steer Amount : " + SteerAmount + "\nBrake Amount : " + BrakeAmount);
+#endif
         }
 
-#endif
     }
 }
 

@@ -21,6 +21,7 @@ public class BaseTank : MonoBehaviour
     [SerializeField][Range(0, 10)] protected float m_TurretRotationSpeed = 1;
     [Tooltip("The Maximum Motor Torque")]
     [SerializeField][Range(1, 10000)] protected float m_MaxMotorTorque = 1000;
+    [SerializeField][Range(1, 10000)] protected float m_MaxBrakeTorque = 1000;
     [SerializeField][Range(0, 5)] protected float m_TorqueResponseTime = 1;
     [Tooltip("The maximum angle that the wheel can steer at")]
     [SerializeField][Range(0.1f, 80)] protected float m_MaxSteerAngle = 35;
@@ -34,7 +35,9 @@ public class BaseTank : MonoBehaviour
     public Wheel[] Wheels { get { return m_Wheels; } }
 
     protected float m_MotorTVelocity;
+    protected float m_BrakeTVelocity;
     protected float m_MotorTorque;
+    protected float m_BrakeTorque;
 
     [Header("----------Combat----------")]
     [SerializeField] protected int m_TotalAmmo;
@@ -248,14 +251,14 @@ public class BaseTank : MonoBehaviour
         if (m_DebugShowValues)
         {
             string info =
-                "Speed : " + Speed  +
+                "Speed : " + Mathf.Floor(Speed)  +
                 "\nCurrent Clip : " + m_CurrentClip+
                 "\nTotal Ammo : " + m_TotalAmmo +
                 "\nIs Reloading ? " + m_IsReloading;
 
             GUIStyle style = new()
             {
-                fontSize = 7
+                fontSize = 10
             };
 
             style.normal.textColor = m_IsReloading ? Color.yellow : Color.white;

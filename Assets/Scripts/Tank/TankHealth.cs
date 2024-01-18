@@ -109,7 +109,7 @@ public class TankHealth : MonoBehaviour
             };
 
             style.normal.textColor = Color.white;
-            Handles.Label(transform.position + (transform.up * 10), info, style);
+            Handles.Label(transform.position + (transform.up * 5), info, style);
         }
 #endif
     }
