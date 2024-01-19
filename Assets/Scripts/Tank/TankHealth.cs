@@ -17,6 +17,8 @@ public class TankHealth : MonoBehaviour
     [SerializeField] bool m_DebugShowValues;
     BaseTank m_Tank;
 
+    public float Health { get { return m_Health; } }
+
     public bool IsDead
     {
         get

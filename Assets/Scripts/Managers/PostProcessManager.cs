@@ -4,9 +4,14 @@ using UnityEngine.Rendering.PostProcessing;
 
 public class PostProcessManager : MonoBehaviour
 {
+    [Header("----------General-----------")]
     [SerializeField] PostProcessVolume m_CameraShakeFX;
+    [SerializeField] PostProcessVolume m_MainFX;
+    [SerializeField] PostProcessVolume m_NearDeathFX;
 
     public static PostProcessManager Instance;
+
+    private TankHealth m_PlayerHealth;
 
     private void Awake()
     {
@@ -18,6 +23,28 @@ public class PostProcessManager : MonoBehaviour
         if (m_CameraShakeFX == null)
             Debug.LogError("There is no camera shake fx volume assigned to the post fx manager!");
 
+        if (m_MainFX == null)
+            Debug.LogError("There is no main fx volume assigned to the post fx manager!");
+
+        if (m_NearDeathFX == null)
+            Debug.LogError("There is no near death fx volume assigned to the post fx manager!");
+
+    }
+
+    private void Start()
+    {
+        //GET TANK HEALTH COMPONENT FROM PLAYER...
+        if (Tank.PlayerTankInstance != null)
+            Tank.PlayerTankInstance.TryGetComponent(out m_PlayerHealth);
+    }
+
+    private void Update()
+    {
+        if (m_PlayerHealth != null)
+        {
+            m_NearDeathFX.weight = 1 - m_PlayerHealth.Health / 100;
+            m_MainFX.weight = 1 - m_NearDeathFX.weight;
+        }
     }
 
     private void OnDestroy()

@@ -32,6 +32,13 @@ public class BaseTank : MonoBehaviour
     [Tooltip("The tank will not fire if the mouse is pointing at any distance lower than this")]
     [SerializeField] protected float m_MinumumProjectileFireDistance = 5.0F;
 
+    [Header("----------Collision----------")]
+    [Tooltip("This is the maximum relative velocity vector magnitude before registering a collision as a big crash")]
+    [SerializeField] float m_BigCrashRelativeVelocityMagnitude = 15.0F;
+    [SerializeField] float m_MedCrashRelativeVelocityMagnitude = 5.0F;
+    [SerializeField] float m_SmallCrashRelativeVelocityMagnitude = 2.0F;
+    [SerializeField] bool m_DisplayRelativeVelocityMagnitude = false;
+
     public Wheel[] Wheels { get { return m_Wheels; } }
 
     protected float m_MotorTVelocity;
@@ -62,6 +69,7 @@ public class BaseTank : MonoBehaviour
     [SerializeField] AudioSource m_TurretShotThumpAudioSource;
     [Tooltip("This is where the turret movement sounds will be played")]
     [SerializeField] AudioSource m_TurretMechanicsSource;
+    [SerializeField] AudioSource m_TankBodyAudioSource;
 
     protected bool m_IsReloading;
 
@@ -249,6 +257,37 @@ public class BaseTank : MonoBehaviour
         }
 
         m_IsReloading = false;
+    }
+
+    protected void OnCollisionEnter(Collision collision)
+    {
+        if (m_DisplayRelativeVelocityMagnitude)
+            Debug.Log(collision.relativeVelocity.magnitude);
+
+        if (SoundManager.Instance != null)
+        {
+            if (collision.relativeVelocity.magnitude >= m_BigCrashRelativeVelocityMagnitude)
+            {
+                SoundManager.Instance.PlayInGameSound("TankFX_Collision_BigCrash", collision.contacts[0].point, true, 50.0F);
+                return;
+            }
+             
+            if (collision.relativeVelocity.magnitude >= m_SmallCrashRelativeVelocityMagnitude && collision.relativeVelocity.magnitude <= m_MedCrashRelativeVelocityMagnitude)
+            {
+                SoundManager.Instance.PlayInGameSound("TankFX_Collision_MedCrash", collision.contacts[0].point, true, 50.0F);
+                return;
+            }
+
+            if (collision.relativeVelocity.magnitude <= m_SmallCrashRelativeVelocityMagnitude)
+            {
+                SoundManager.Instance.PlayInGameSound("TankFX_Collision_SmallCrash", collision.contacts[0].point, true, 50.0F);
+                return;
+            }
+        }
+        else
+        {
+            Debug.LogError("There is no Sound Manager in scene!");
+        }
     }
 
     protected virtual void OnDrawGizmosSelected()

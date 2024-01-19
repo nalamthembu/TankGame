@@ -4,6 +4,18 @@ using System.Collections;
 [System.Serializable]
 public class BaseCamera
 {
+    [Header("----------Handheld Effect----------")]
+    [SerializeField] protected bool m_HandHeldEffectEnabled;
+    [SerializeField] [Min(0.01F)] float m_HandheldRange;
+    [SerializeField] [Min(0.01F)] protected float m_HandHeldSmoothing;
+    Vector3 m_HandHeldVelocity;
+
+    [Header("----------Debug----------")]
+    [SerializeField] bool m_DebugHandHeldEffect;
+    [SerializeField] float m_DebugHandheldPercentage;
+    [Header("---------------------------")]
+    
+
     [SerializeField][Range(0.1F, 5)] protected float m_FOVSmoothTime = 0.25F;
 
     public bool m_IsActive;
@@ -22,6 +34,7 @@ public class BaseCamera
     protected Camera m_AttachedCamera;
 
     public virtual void Awake() { }
+    public virtual void Start() { }
     public virtual void OnDestroy() { }
 
     /// <summary>
@@ -62,6 +75,24 @@ public class BaseCamera
         DoUpdateRotation();
         DoUpdatePosition();
         DoUpdateSpeed();
+    }
+
+    protected void DoHandHeldEffect(float percent, float smoothing = 5)
+    {
+        if (m_DebugHandHeldEffect)
+        {
+            percent = m_DebugHandheldPercentage;
+        }
+
+        Vector3 handHeldPosition = new()
+        {
+            x = Mathf.Sin(Time.time * m_HandHeldSmoothing) * Random.Range(-m_HandheldRange, m_HandheldRange),
+            y = Mathf.Cos(Time.time * m_HandHeldSmoothing) * Random.Range(-m_HandheldRange, m_HandheldRange),
+        };
+
+        handHeldPosition *= Mathf.Lerp(0, 1, Mathf.Clamp01(percent));
+
+        m_AttachedCamera.transform.localPosition = Vector3.SmoothDamp(m_AttachedCamera.transform.localPosition, handHeldPosition, ref m_HandHeldVelocity, smoothing);
     }
 
     protected virtual void DoUpdatePosition() { }

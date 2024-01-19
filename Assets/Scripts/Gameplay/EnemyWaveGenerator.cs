@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections.Generic;
 
 public class EnemyWaveGenerator : MonoBehaviour
 {
@@ -19,18 +20,40 @@ public class EnemyWaveGenerator : MonoBehaviour
 
     private int m_WaveCount;
 
+    private List<BaseTank> m_SpawnedEnemies = new();
+
     [Header("----------Debugging----------")]
     [SerializeField] bool m_VisualiseLevelBounds;
     [SerializeField] bool m_MakeLevelBoundsSolid;
 
+    public static EnemyWaveGenerator Instance;
+
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+            Destroy(gameObject);
+
         m_CurrentEnemyCount = m_InitialEnemyCount;
+    }
+
+    private void OnDestroy()
+    {
+        Instance = null;
+        Debug.Log("Destroyed Enemy Wave Generator Instance!");
     }
 
     [ContextMenu("Generate Wave")]
     public void GenerateWave()
     {
+        if (m_SpawnedEnemies.Count > 0)
+        {
+            m_SpawnedEnemies.Clear();
+        }
+
         if (m_WaveCount > 0)
             m_CurrentEnemyCount += m_EnemyAdditionOnEachWave;
 
@@ -67,8 +90,32 @@ public class EnemyWaveGenerator : MonoBehaviour
                 Debug.Log("Ran out of iterations defaulting position to World Origin");
             }
 
-            Instantiate(GOEnemy, randomPosition, Quaternion.identity, transform);
+            GameObject spawnedEnemy = Instantiate(GOEnemy, randomPosition, Quaternion.identity, transform);
+
+            m_SpawnedEnemies.Add(spawnedEnemy.GetComponent<BaseTank>());
         }
+    }
+
+    public bool AreAllEnemiesDefeated()
+    {
+        if (m_SpawnedEnemies.Count <= 0)
+            return false;
+
+        int count = 0;
+
+        foreach(BaseTank tank in m_SpawnedEnemies)
+        {
+            if (tank.TryGetComponent<TankHealth>(out var health))
+            {
+                if (health.IsDead)
+                    count++;
+            }
+        }
+
+        if (count >= m_SpawnedEnemies.Count)
+            return true;
+
+        return false;
     }
 
     private void OnDrawGizmosSelected()

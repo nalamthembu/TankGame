@@ -5,6 +5,8 @@ public class ThirdPersonCameraSingleTarget : SingleTargetCamera
 {
     public static ThirdPersonCameraSingleTarget Instance;
 
+    [Header("----------General----------")]
+
     [SerializeField] protected Vector2 m_Offset = new(0.5F, 0.0F);
 
     [SerializeField] protected Vector2 m_PitchLimits = new(-45, 90);
@@ -113,6 +115,7 @@ public class ThirdPersonCameraSingleTarget : SingleTargetCamera
 
         m_LastMousePos = Input.mousePosition;
     }
+
 
 
     public override void Initialise(Transform selfTransform, float initialFOV)

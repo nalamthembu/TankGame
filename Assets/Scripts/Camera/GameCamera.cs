@@ -14,6 +14,12 @@ public class GameCamera : MonoBehaviour
         m_DebugCamera.OnDestroy();
     }
 
+    private void Start()
+    {
+        m_ThirdPersonTankCamera.Start();
+        m_DebugCamera.Start();
+    }
+
     private void Awake()
     {
         if (Instance is null)

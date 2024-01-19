@@ -8,14 +8,30 @@ public class Tank : BaseTank
 {
     Camera m_Camera;
 
+    public static Tank PlayerTankInstance;
+
     protected override void Awake()
     {
+        if (PlayerTankInstance == null)
+        {
+            PlayerTankInstance = this;
+        }
+        else
+            Destroy(gameObject);
+
         base.Awake();
 
         m_Camera = Camera.main;
 
         if (m_Camera is null)
             Debug.LogError("There is no main camera in the scene");
+    }
+
+    private void OnDestroy()
+    {
+        PlayerTankInstance = null;
+
+        Debug.Log("Destroyed Player Tank Instance!");
     }
 
     protected override void Update()

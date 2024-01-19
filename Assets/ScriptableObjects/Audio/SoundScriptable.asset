@@ -44,3 +44,28 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: eae7b257b6ab11f4a87d64f7ddbee4c4, type: 3}
     type: 0
+  - soundID: TankFX_TrackSweetenerLoop
+    clips:
+    - {fileID: 8300000, guid: 2dc268d575979244786cc19591053fc2, type: 3}
+    type: 0
+  - soundID: TankFX_TrackSweetenerLoop_Mono
+    clips:
+    - {fileID: 8300000, guid: 5c826571ee73e9b44bca6c4e8c71fd3d, type: 3}
+    type: 0
+  - soundID: TankFX_Collision_BigCrash
+    clips:
+    - {fileID: 8300000, guid: 9570efe4358e4f947897f834097d9221, type: 3}
+    type: 0
+  - soundID: TankFX_Collision_MedCrash
+    clips:
+    - {fileID: 8300000, guid: 3a34a8dd0409d4f468007e236cc21a5b, type: 3}
+    type: 0
+  - soundID: TankFX_Collision_SmallCrash
+    clips:
+    - {fileID: 8300000, guid: ef4e2e42a64f97d448ac7a8fd5bde685, type: 3}
+    - {fileID: 8300000, guid: a112d5df501b9b840b99458a0cbc6177, type: 3}
+    type: 0
+  - soundID: TankFX_Collision_Scrape_Loop
+    clips:
+    - {fileID: 8300000, guid: 0e682443423aa0649a8a9fa864822571, type: 3}
+    type: 0
