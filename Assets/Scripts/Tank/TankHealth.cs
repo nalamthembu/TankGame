@@ -19,6 +19,8 @@ public class TankHealth : MonoBehaviour
 
     public float Health { get { return m_Health; } }
 
+    public bool HasArmor { get { return m_Armor > 0; } }
+
     public bool IsDead
     {
         get
@@ -43,6 +45,28 @@ public class TankHealth : MonoBehaviour
         }
     }
 
+    public void AddHealth(float amount)
+    {
+        m_Health += amount;
+
+        //Cap health to 100
+        if (m_Health > 100)
+        {
+            m_Health = 100;
+        }
+    }
+
+    public void AddArmor(float amount)
+    {
+        m_Armor += amount;
+
+        //Cap health to 100
+        if (m_Armor > 100)
+        {
+            m_Armor = 100;
+        }
+    }
+
     //Damage can only be positive...
     public void TakeDamage(float amount)
     {
@@ -53,27 +77,18 @@ public class TankHealth : MonoBehaviour
         //if we have armor...
         if (m_Armor > 0)
         {
-            //and the amount of damage we take would make the armor negative
-            if (m_Armor - amount >= 0)
-                m_Armor -= amount;
-
-            //If the damage exceeds our protection...
-            if (m_Armor - amount < 0)
+            //Play Shield Damage Sound
+            if (SoundManager.Instance)
             {
-                float leftOverDamage = amount - m_Armor;
-
-                //Destroy armour...
-                m_Armor = 0;
-
-                m_Health -= leftOverDamage;
-
-                if (m_Health <= 0)
-                {
-                    m_Health = 0;
-                }
-
-                return;
+                SoundManager.Instance.PlayInGameSound("TankFX_HitShield", transform.position, true, 70.0F);
             }
+            else
+                Debug.LogError("There is no Sound Manager in the scene!");
+
+            m_Armor -= amount;
+
+            if (m_Armor > 0)
+                return;
         }
 
         //Else we just have no armor and take that damage RAW

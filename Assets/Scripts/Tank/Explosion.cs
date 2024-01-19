@@ -131,7 +131,7 @@ public class Explosion : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (m_IsExploding && m_DebugShowAreaOfAffect)
+        if (m_IsExploding && m_DebugShowAreaOfAffect|| m_DebugShowAreaOfAffect) 
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, m_AreaOfAffect);

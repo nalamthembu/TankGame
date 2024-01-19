@@ -65,7 +65,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: ef4e2e42a64f97d448ac7a8fd5bde685, type: 3}
     - {fileID: 8300000, guid: a112d5df501b9b840b99458a0cbc6177, type: 3}
     type: 0
-  - soundID: TankFX_Collision_Scrape_Loop
+  - soundID: TankFX_HitShield
     clips:
-    - {fileID: 8300000, guid: 0e682443423aa0649a8a9fa864822571, type: 3}
+    - {fileID: 8300000, guid: 2131d1b04f064a94aa243d37abb8ad5d, type: 3}
     type: 0

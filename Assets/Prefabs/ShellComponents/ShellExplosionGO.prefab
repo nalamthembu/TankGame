@@ -23676,7 +23676,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_LifeTimeInSeconds: 5
-  m_AreaOfAffect: 30
+  m_AreaOfAffect: 5
   m_ExplosionForce: 500
   m_CameraShakeIntensityAtPointBlank: 10
   m_MaximumCameraShakeDistance: 50
