@@ -26,6 +26,7 @@ public class BaseCamera
 
     protected float m_FOVSmoothVel;
 
+
     [HideInInspector] public Transform transform;
     [HideInInspector] public GameObject gameObject;
 

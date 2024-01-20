@@ -31,3 +31,9 @@ MonoBehaviour:
   mixerStates:
   - ID: Death
     mixerSnapshot: {fileID: -1824298814472897611, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}
+  - ID: Normal
+    mixerSnapshot: {fileID: 24500006, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}
+  - ID: LowHealth
+    mixerSnapshot: {fileID: -2104665235632014626, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}
+  - ID: FrontendOnly
+    mixerSnapshot: {fileID: -4902780113789279327, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}

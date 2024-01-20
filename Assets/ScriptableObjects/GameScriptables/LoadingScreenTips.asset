@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84b5aa87a0cf17d4a8dbb835ceb4569d, type: 3}
+  m_Name: LoadingScreenTips
+  m_EditorClassIdentifier: 
+  tips:
+  - Wanna dodge shells? Rotate your tank as soon as you see other tanks aim at you.
+  - Collect health and armor pickups located all over the stage.
+  - Wanna contact the developer of this game about some work? Send an email to nala00.12@gmail.com

@@ -17,32 +17,32 @@ public class SoundManager : MonoBehaviour
     //Allow the methods to be accessed from other scripts.
     public static SoundManager Instance { get; private set; }
 
+    public string CurrentMixerStateID { get; private set; }
+
     private void Awake()
     {
-        //Singleton
-        if (Instance != null)
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
         {
             Destroy(gameObject);
             return;
         }
 
-        Instance = this;
-
         InitialiseDictionaries();
         InitialiseFrontendSoundSource();
     }
 
-    private void OnDestroy()
-    {
-        Instance = null;
-        Debug.Log("Destroyed Sound Manager!");
-    }
 
     public void TransitionToMixerState(string ID, float time)
     {
         if (m_MixerStates.TryGetValue(ID, out var mixerState))
         {
             mixerState.mixerSnapshot.TransitionTo(time);
+
+            CurrentMixerStateID = ID;
         }
         else
             Debug.LogError("The mixer state : " + ID + " does not exist");

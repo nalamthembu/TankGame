@@ -17,7 +17,6 @@ MonoBehaviour:
   - Unalived
   - K.I.A
   - Expired
-  - Rotisserie Ready
   - Ended
   - Defunct
   - Extinct
@@ -34,8 +33,6 @@ MonoBehaviour:
   - Killtastrophed
   - Bullzied
   - Zombified
-  - Destroy(You);
-  - Garbage Collected
   - Disposed
   - Crushed
   - Shelled

@@ -97,7 +97,7 @@ public class TankVisuals : MonoBehaviour
 
                             if (destroyedUSTank.TryGetComponent<DestroyedTank>(out var component))
                             {
-                                component.InitialiseDestroyedTank(m_Tank.CurrentVelocity);
+                                component.InitialiseDestroyedTank();
                             }
                             else
                                 Debug.LogError("There is no destoyed tank component on the US Tank!");
@@ -116,7 +116,7 @@ public class TankVisuals : MonoBehaviour
 
                             if (destroyedUSTank.TryGetComponent<DestroyedTank>(out var component))
                             {
-                                component.InitialiseDestroyedTank(m_Tank.CurrentVelocity);
+                                component.InitialiseDestroyedTank();
                             }
                             else
                                 Debug.LogError("There is no destoyed tank component on the RUS Tank!");
@@ -135,7 +135,7 @@ public class TankVisuals : MonoBehaviour
 
                             if (destroyedUSTank.TryGetComponent<DestroyedTank>(out var component))
                             {
-                                component.InitialiseDestroyedTank(m_Tank.CurrentVelocity);
+                                component.InitialiseDestroyedTank();
                             }
                             else
                                 Debug.LogError("There is no destoyed tank component on the GER Tank!");

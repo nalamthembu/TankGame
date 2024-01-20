@@ -27,12 +27,5 @@ public class DeathHUD : HUD
         m_Elements.SetActive(true);
 
         m_DeathScreenText.text = m_TextData.Text[Random.Range(0, m_TextData.Text.Length)];
-
-        //Play Death Sound...
-        if (SoundManager.Instance)
-        {
-            SoundManager.Instance.TransitionToMixerState("Death", 0.1F);
-            SoundManager.Instance.PlayFESound("Death");
-        }
     }
 }

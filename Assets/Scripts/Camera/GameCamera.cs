@@ -12,6 +12,10 @@ public class GameCamera : MonoBehaviour
     {
         m_ThirdPersonTankCamera.OnDestroy();
         m_DebugCamera.OnDestroy();
+
+        Instance = null;
+
+        Debug.Log("Destroyed Game Camera Instance!");
     }
 
     private void Start()

@@ -16,4 +16,7 @@ MonoBehaviour:
   - soundID: Death
     clips:
     - {fileID: 8300000, guid: e128ae739b9f9ce4daa4674ddc6ba793, type: 3}
+  - soundID: GunReady
+    clips:
+    - {fileID: 8300000, guid: baf7b1c1a3f47a649a3cc244f22bfe63, type: 3}
   FEMixerGroup: {fileID: 6729998088901574412, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}

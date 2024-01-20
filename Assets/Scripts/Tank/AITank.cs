@@ -37,13 +37,10 @@ public class AITank : BaseTank
     [SerializeField] float m_PerimeterCheckFrequency = 3;
     [Tooltip("How far is the enemy allowed to be before we stop and look for another?")]
     [SerializeField] float m_MaxDistanceFromEnemy = 50.0F;
-    [SerializeField] float m_ShootingRange = 40.0F;
 
     [Header("----------Debugging----------")]
     [Tooltip("Do you want the tank to stop moving forward?")]
     [SerializeField] bool m_KillThrottle = false;
-    [Tooltip("Do you want the tank to stop steering?")]
-    [SerializeField] bool m_KillSteering = false;
 
     //This is where the AI chose to roam to.
     Vector3 m_TargetDestination;

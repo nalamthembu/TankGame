@@ -70,12 +70,20 @@ public class MiniMapHUD : HUD
     {
         base.OnEnable();
         BaseTank.OnSpawn += OnTankSpawn;
+        PlayerTankHealth.OnHealthChange += OnPlayerHealthChange;
+    }
+
+    private void OnPlayerHealthChange(float health, float armor)
+    {
+        m_PlayerHealthSlider.value = health;
+        m_PlayerArmorSlider.value = armor;
     }
 
     protected override void OnDisable()
     {
         base.OnDisable();
         BaseTank.OnSpawn -= OnTankSpawn;
+        PlayerTankHealth.OnHealthChange -= OnPlayerHealthChange;
     }
 
     private void OnTankSpawn(BaseTank spawnedTank)
@@ -95,20 +103,6 @@ public class MiniMapHUD : HUD
     private void LateUpdate()
     {
         TrackPlayerWithMiniMapCamera();
-    }
-
-    public void UpdatePlayerStats(PlayerStatUpdate statToUpdate, float value)
-    {
-        switch (statToUpdate)
-        {
-            case PlayerStatUpdate.PLAYER_ARMOR:
-                m_PlayerArmorSlider.value = value;
-                break;
-
-            case PlayerStatUpdate.PLAYER_HEALTH:
-                m_PlayerHealthSlider.value = value;
-                break;
-        }
     }
 
     private void CreateIconAndAssignToTank(GameObject IconPrefab, Transform parent)
@@ -144,7 +138,14 @@ public class MiniMapHUD : HUD
     {
         if (PlayerTank.PlayerTankInstance != null)
         {
-            float angleY = m_FlipForwardDirection ? -PlayerTank.PlayerTankInstance.transform.eulerAngles.y : PlayerTank.PlayerTankInstance.transform.eulerAngles.y;
+            float angleY = 0;
+
+            if (ThirdPersonTankCamera.Instance != null)
+            {
+                angleY = ThirdPersonTankCamera.Instance.transform.eulerAngles.y;
+
+                angleY = m_FlipForwardDirection ? -angleY : angleY;
+            }
 
             m_MiniMapCamera.transform.position = PlayerTank.PlayerTankInstance.transform.position + Vector3.up * m_MiniMapHeight;
             m_MiniMapCamera.transform.eulerAngles = Vector3.right * 90 + Vector3.forward * angleY;

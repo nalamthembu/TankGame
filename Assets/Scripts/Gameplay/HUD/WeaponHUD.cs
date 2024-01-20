@@ -26,9 +26,11 @@ public class WeaponHUD : HUD
 
     private void OnReloadComplete()
     {
-        //Play Sound?
         if (m_ChamberStatus && m_ChamberStatusImage)
         {
+            //Play Sound
+            if (SoundManager.Instance)
+                SoundManager.Instance.PlayFESound("GunReady");
             m_ChamberStatus.text = "Ready";
             m_ChamberStatusImage.color = m_ReadyColor;
         }

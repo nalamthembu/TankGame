@@ -80,7 +80,7 @@ public class EnemyWaveGenerator : MonoBehaviour
 
         m_WaveCount++;
 
-        int limit = m_CurrentEnemyCount > 10 ? 10 : m_CurrentEnemyCount;
+        int limit = m_CurrentEnemyCount > m_MaxEnemies ? m_MaxEnemies : m_CurrentEnemyCount;
 
         for (int i = 0; i < limit; i++)
         {
