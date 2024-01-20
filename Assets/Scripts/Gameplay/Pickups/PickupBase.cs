@@ -51,9 +51,9 @@ public class PickupBase : MonoBehaviour
 
     protected virtual void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent<Tank>(out var tank))
+        if (other.TryGetComponent<PlayerTank>(out var tank))
         {
-            if (Tank.PlayerTankInstance != null && tank == Tank.PlayerTankInstance)
+            if (PlayerTank.PlayerTankInstance != null && tank == PlayerTank.PlayerTankInstance)
             {
                 DoPlayerPickUp();
 

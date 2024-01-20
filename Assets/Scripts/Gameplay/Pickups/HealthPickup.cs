@@ -32,9 +32,9 @@ public class HealthPickup : PickupBase
     {
         base.DoPlayerPickUp();
 
-        if (Tank.PlayerTankInstance !=null)
+        if (PlayerTank.PlayerTankInstance !=null)
         {
-            if (Tank.PlayerTankInstance.TryGetComponent<TankHealth>(out var health))
+            if (PlayerTank.PlayerTankInstance.TryGetComponent<TankHealth>(out var health))
             {
                 health.AddHealth(m_Health);
             }

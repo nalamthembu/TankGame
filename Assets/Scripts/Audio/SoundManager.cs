@@ -10,6 +10,7 @@ public class SoundManager : MonoBehaviour
     private readonly Dictionary<string, Sound> m_InGameSoundDict = new();
     private readonly Dictionary<string, FESound> m_FESoundDict = new();
     private readonly Dictionary<SoundType, Mixer> m_MixerDict = new();
+    private readonly Dictionary<string, MixerState> m_MixerStates = new();
 
     private AudioSource m_FESource;
     
@@ -37,6 +38,16 @@ public class SoundManager : MonoBehaviour
         Debug.Log("Destroyed Sound Manager!");
     }
 
+    public void TransitionToMixerState(string ID, float time)
+    {
+        if (m_MixerStates.TryGetValue(ID, out var mixerState))
+        {
+            mixerState.mixerSnapshot.TransitionTo(time);
+        }
+        else
+            Debug.LogError("The mixer state : " + ID + " does not exist");
+    }
+
     private void InitialiseFrontendSoundSource()
     {
         m_FESource = gameObject.AddComponent<AudioSource>();
@@ -60,9 +71,14 @@ public class SoundManager : MonoBehaviour
             m_FESoundDict.Add(feSound.soundID, feSound);
         }
 
-        foreach(Mixer mixer in m_MixerScriptable.mixers)
+        foreach (Mixer mixer in m_MixerScriptable.mixers)
         {
             m_MixerDict.Add(mixer.type, mixer);
+        }
+
+        foreach (MixerState mixerState in m_MixerScriptable.mixerStates)
+        {
+            m_MixerStates.Add(mixerState.ID, mixerState);
         }
     }
 

@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 using System.Collections;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// This is the base class for the objects with turrets
@@ -17,7 +19,7 @@ public class BaseTank : MonoBehaviour
     [SerializeField] protected Transform m_TurretTransform;
 
     [Header("----------Movement----------")]
-    [Tooltip("How fast should the turret to rotate to face the target.")]
+    [Tooltip("How fast the turret to rotates to face the target.")]
     [SerializeField][Range(0, 10)] protected float m_TurretRotationSpeed = 1;
     [Tooltip("The Maximum Motor Torque")]
     [SerializeField][Range(1, 10000)] protected float m_MaxMotorTorque = 1000;
@@ -27,16 +29,16 @@ public class BaseTank : MonoBehaviour
     [SerializeField][Range(0.1f, 80)] protected float m_MaxSteerAngle = 35;
     [Tooltip("These are all the wheels attached to the tank")]
     [SerializeField] protected Wheel[] m_Wheels;
-    [Tooltip("How much 'kickback' should the tank have?")]
+    [Tooltip("How much 'kickback' should the tank has")]
     [SerializeField] protected float m_RecoilForce = 500;
     [Tooltip("The tank will not fire if the mouse is pointing at any distance lower than this")]
     [SerializeField] protected float m_MinumumProjectileFireDistance = 5.0F;
 
     [Header("----------Collision----------")]
     [Tooltip("This is the maximum relative velocity vector magnitude before registering a collision as a big crash")]
-    [SerializeField] float m_BigCrashRelativeVelocityMagnitude = 15.0F;
-    [SerializeField] float m_MedCrashRelativeVelocityMagnitude = 5.0F;
-    [SerializeField] float m_SmallCrashRelativeVelocityMagnitude = 2.0F;
+    [SerializeField] protected float m_BigCrashRelativeVelocityMagnitude = 15.0F;
+    [SerializeField] protected float m_MedCrashRelativeVelocityMagnitude = 5.0F;
+    [SerializeField] protected float m_SmallCrashRelativeVelocityMagnitude = 2.0F;
     [SerializeField] bool m_DisplayRelativeVelocityMagnitude = false;
 
     public Wheel[] Wheels { get { return m_Wheels; } }
@@ -49,9 +51,9 @@ public class BaseTank : MonoBehaviour
     [Header("----------Combat----------")]
     [SerializeField] protected int m_TotalAmmo;
     [SerializeField] protected int m_CurrentClip;
-    [Tooltip("What is the maxmimum amount of ammo a clip can have?")]
+    [Tooltip("The maxmimum amount of ammo a clip can have")]
     [SerializeField] [Min(1)] protected int m_MaxClip;
-    [Tooltip("How long does it take to reload?")]
+    [Tooltip("How long does it takes to reload")]
     [SerializeField] protected float m_ReloadTimeInSeconds = 3;
 
     [Header("----------Projectile Variables----------")]
@@ -71,11 +73,20 @@ public class BaseTank : MonoBehaviour
     [SerializeField] AudioSource m_TurretMechanicsSource;
     [SerializeField] AudioSource m_TankBodyAudioSource;
 
+    //Flags
     protected bool m_IsReloading;
-
     public bool IsFiring { get; private set; }
+    public Vector3 CurrentVelocity { get { return m_RigidBody.velocity; } }
+    protected bool m_IsDoneReloading;
 
     protected Rigidbody m_RigidBody;
+
+    //Events
+    public static event Action<BaseTank> OnSpawn;
+
+    /// <summary>
+    /// Speed is measured in Kilometres per hour (Let's use some practical units....unlike miles per hour)
+    /// </summary>
     public float Speed { get; private set; }
 
     [SerializeField] protected bool m_DebugShowValues;
@@ -125,6 +136,11 @@ public class BaseTank : MonoBehaviour
 
         if (m_RigidBody is null)
             Debug.LogError("There is no rigidbody attached to this tank!");
+    }
+
+    protected virtual void Start()
+    {
+        OnSpawn?.Invoke(this);
     }
 
     protected void RotateTurret(Vector3 LookAtTarget)
@@ -223,7 +239,7 @@ public class BaseTank : MonoBehaviour
 
                     if (m_GOProjectile.TryGetComponent(out ShellProjectile shellProjectile))
                     {
-                        shellProjectile.SendProjectile(forwardDirection, m_ProjectileThrust, m_ProjectileRange);
+                        shellProjectile.SendProjectile(forwardDirection, m_ProjectileThrust, m_ProjectileRange, this);
                     }
                     else
                     {
@@ -257,9 +273,11 @@ public class BaseTank : MonoBehaviour
         }
 
         m_IsReloading = false;
+
+        m_IsDoneReloading = true;
     }
 
-    protected void OnCollisionEnter(Collision collision)
+    protected virtual void OnCollisionEnter(Collision collision)
     {
         if (m_DisplayRelativeVelocityMagnitude)
             Debug.Log(collision.relativeVelocity.magnitude);

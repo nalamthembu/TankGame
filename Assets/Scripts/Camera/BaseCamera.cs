@@ -6,15 +6,17 @@ public class BaseCamera
 {
     [Header("----------Handheld Effect----------")]
     [SerializeField] protected bool m_HandHeldEffectEnabled;
-    [SerializeField] [Min(0.01F)] float m_HandheldRange;
-    [SerializeField] [Min(0.01F)] protected float m_HandHeldSmoothing;
+    [SerializeField][Min(0.01F)] float m_HandheldRange;
+    [SerializeField][Min(0.01F)] protected float m_HandHeldSmoothing;
     Vector3 m_HandHeldVelocity;
 
     [Header("----------Debug----------")]
     [SerializeField] bool m_DebugHandHeldEffect;
     [SerializeField] float m_DebugHandheldPercentage;
+    [SerializeField] bool m_DebugDisableCameraShake;
+    public bool DebugDebugDisableCameraShake { get { return m_DebugDisableCameraShake; } }
     [Header("---------------------------")]
-    
+
 
     [SerializeField][Range(0.1F, 5)] protected float m_FOVSmoothTime = 0.25F;
 
@@ -108,49 +110,35 @@ public class BaseCamera
     /// <param name="maximumMovement"></param>
     /// <param name="intensity"></param>
     /// <returns></returns>
-    public IEnumerator DoCameraShake(float duration, float maximumMovement, float intensity)
+    public IEnumerator DoCameraShake(float duration, float magnitude)
     {
         float timer = 0;
 
-        Vector3 previousPosition = m_AttachedCamera.transform.localPosition;
+        Vector3 currentVelocity = Vector3.zero;
 
         do
         {
             //Calculate a random position.
-            Vector3 randomPosition = Vector3.right * Random.Range(-maximumMovement, maximumMovement) +
-                    Vector3.up * Random.Range(-maximumMovement, maximumMovement);
+            Vector3 randomPos = new()
+            {
+                x = Random.Range(-1, 1) * magnitude,
+                y = 0,
+                z = Random.Range(-1, 1) * magnitude
+            };
 
             //Shake the camera
             m_AttachedCamera.transform.localPosition =
-                Vector3.Lerp
-                (
+                Vector3.SmoothDamp(
                     m_AttachedCamera.transform.localPosition,
-                    randomPosition,
-                    Time.deltaTime * intensity
-                );
+                    randomPos,
+                    ref currentVelocity,
+                    Time.deltaTime);
+
 
             timer += Time.deltaTime;
 
             yield return new WaitForEndOfFrame();
 
         } while (timer < duration);
-
-        do
-        {
-            m_AttachedCamera.transform.localPosition =
-                Vector3.Lerp
-                (
-                    m_AttachedCamera.transform.localPosition,
-                    previousPosition,
-                    Time.deltaTime * intensity
-                );
-
-            //If the camera is extremely close to the previous position
-            if ((previousPosition - m_AttachedCamera.transform.localPosition).magnitude < 0.001F)
-                m_AttachedCamera.transform.localPosition = previousPosition; //snap to that position.
-
-            yield return new WaitForEndOfFrame();
-
-        } while (m_AttachedCamera.transform.localPosition != previousPosition);
     }
 }

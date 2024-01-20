@@ -99,7 +99,7 @@ public class TankEngineAudio : MonoBehaviour
                     m_TrackSweetenerSource.enabled = true;
 
                     //Play the mono track for NPCs, stereo for Player...
-                    SoundManager.Instance.PlayInGameSound("TankFX_TrackSweetenerLoop_Mono", m_TrackSweetenerSource, true, true, m_Tank is Tank, 1.0F);
+                    SoundManager.Instance.PlayInGameSound("TankFX_TrackSweetenerLoop_Mono", m_TrackSweetenerSource, true, true, m_Tank is PlayerTank, 1.0F);
                 }
             }
             else

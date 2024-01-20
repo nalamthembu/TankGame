@@ -28,3 +28,6 @@ MonoBehaviour:
   - mixerID: FRONTEND
     mixerGroup: {fileID: 6729998088901574412, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}
     type: 4
+  mixerStates:
+  - ID: Death
+    mixerSnapshot: {fileID: -1824298814472897611, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}

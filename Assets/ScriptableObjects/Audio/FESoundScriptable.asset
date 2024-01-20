@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6965a0525173f54f9f41d20a13dc688, type: 3}
   m_Name: FESoundScriptable
   m_EditorClassIdentifier: 
-  sounds: []
+  sounds:
+  - soundID: Death
+    clips:
+    - {fileID: 8300000, guid: e128ae739b9f9ce4daa4674ddc6ba793, type: 3}
   FEMixerGroup: {fileID: 6729998088901574412, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}

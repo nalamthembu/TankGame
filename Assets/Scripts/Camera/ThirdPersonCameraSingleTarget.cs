@@ -11,7 +11,7 @@ public class ThirdPersonCameraSingleTarget : SingleTargetCamera
 
     [SerializeField] protected Vector2 m_PitchLimits = new(-45, 90);
 
-    [SerializeField] LayerMask m_CollisionLayers;
+    [SerializeField] protected LayerMask m_CollisionLayers;
 
     [SerializeField][Range(1, 50)] protected float m_DistFromTarget = 3.0F;
 

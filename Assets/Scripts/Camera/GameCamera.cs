@@ -31,6 +31,26 @@ public class GameCamera : MonoBehaviour
         m_DebugCamera.Initialise(transform, 50);
     }
 
+    private void OnEnable()
+    {
+        Explosion.OnExplode += OnExplosionInWorld;
+        PlayerTank.OnPlayerShot += OnExplosionInWorld;
+        PlayerTank.OnPlayerBigCollision += OnExplosionInWorld;
+    }
+
+    private void OnDisable()
+    {
+        Explosion.OnExplode -= OnExplosionInWorld;
+        PlayerTank.OnPlayerShot -= OnExplosionInWorld;
+        PlayerTank.OnPlayerBigCollision -= OnExplosionInWorld;
+    }
+
+    private void OnExplosionInWorld(float duration,float magnitude)
+    {
+        if (!m_ThirdPersonTankCamera.DebugDebugDisableCameraShake)
+            StartCoroutine(m_ThirdPersonTankCamera.DoCameraShake(duration, magnitude));
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Tilde))

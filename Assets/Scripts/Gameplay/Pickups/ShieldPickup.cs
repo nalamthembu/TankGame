@@ -32,9 +32,9 @@ public class ShieldPickup : PickupBase
     {
         base.DoPlayerPickUp();
 
-        if (Tank.PlayerTankInstance != null)
+        if (PlayerTank.PlayerTankInstance != null)
         {
-            if (Tank.PlayerTankInstance.TryGetComponent<TankHealth>(out var health))
+            if (PlayerTank.PlayerTankInstance.TryGetComponent<TankHealth>(out var health))
             {
                 health.AddArmor(m_Armor);
             }

@@ -1,14 +1,26 @@
 ﻿using UnityEngine;
+using System;
 
 /// <summary>
 /// This is child class of base tank and contains a tank object that can be controlled by the player.
 /// </summary>
 /// 
-public class Tank : BaseTank
+public class PlayerTank : BaseTank
 {
     Camera m_Camera;
 
-    public static Tank PlayerTankInstance;
+
+
+    public static PlayerTank PlayerTankInstance;
+
+    public static event Action<float, float> OnPlayerShot;
+
+    public static event Action OnPlayerReload;
+
+    public static event Action OnPlayerIsDoneReloading;
+
+    public static event Action<float, float> OnPlayerBigCollision;
+
 
     protected override void Awake()
     {
@@ -25,6 +37,8 @@ public class Tank : BaseTank
 
         if (m_Camera is null)
             Debug.LogError("There is no main camera in the scene");
+
+        //OnSpawn?.Invoke(this);
     }
 
     private void OnDestroy()
@@ -74,6 +88,17 @@ public class Tank : BaseTank
             Debug.LogError("There is no player input instance in scene!");
     }
 
+    protected override void OnCollisionEnter(Collision collision)
+    {
+        base.OnCollisionEnter(collision);
+
+        if (collision.relativeVelocity.magnitude >= m_BigCrashRelativeVelocityMagnitude + 10)
+        {
+            //Tell those who are listening...
+            OnPlayerBigCollision?.Invoke(0.25F, 0.5F);
+        }
+    }
+
     protected override void ProcessFireInput()
     {
         //if we've run out of ammo in our current clip...
@@ -81,10 +106,22 @@ public class Tank : BaseTank
         {
             //If we're not reloading
             if (!m_IsReloading)
-                StartCoroutine(Reload()); //then do so...
+            { 
+                //then do so...
+                StartCoroutine(Reload());
+
+                //let everyone whos listening know...
+                OnPlayerReload?.Invoke();
+            }
 
             //Don't execute any further code.
             return;
+        }
+        else if (m_CurrentClip >0 && m_IsDoneReloading)
+        {
+            //Let everyone whos listening know we're done reloading.
+            m_IsDoneReloading = false;
+            OnPlayerIsDoneReloading?.Invoke();
         }
 
         //Don't try to shoot if you are reloading!
@@ -110,9 +147,7 @@ public class Tank : BaseTank
 
                     m_CurrentClip--;
 
-                    //Quick thud on the camera.
-                    if (ThirdPersonTankCamera.Instance != null)
-                        StartCoroutine(ThirdPersonTankCamera.Instance.DoCameraShake(0.25F, 5.0F, 4.0F));
+                    OnPlayerShot?.Invoke(0.25F, 0.25F);
 
                     //Add some recoil force to the tank.
                     if (m_RigidBody != null)
@@ -121,7 +156,6 @@ public class Tank : BaseTank
             }
         }
     }
-
 
     protected override void OnDrawGizmosSelected()
     {

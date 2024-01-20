@@ -9,15 +9,21 @@ using UnityEditor;
 public class TankHealth : MonoBehaviour
 {
     [Header("---------General----------")]
-    [SerializeField][Range(0, 100)] float m_Health = 100;
-    [SerializeField][Range(0, 100)] float m_Armor = 0;
+    [SerializeField][Range(0, 100)] protected float m_Health = 100;
+    [SerializeField][Range(0, 100)] protected float m_Armor = 0;
     [Header("---------Regeneration----------")]
-    [SerializeField][Range(1, 10)] float m_RegenerateRate = 2; //How fast do we regenerate health.
+    [SerializeField][Range(0, 10)] float m_RegenerateRate = 2; //How fast do we regenerate health.
     [SerializeField][Range(0, 100)] float m_RegenerateCap = 50; //How much of the health are we allow to regenerate?
     [SerializeField] bool m_DebugShowValues;
-    BaseTank m_Tank;
+
+    public static event Action<BaseTank> OnDeath;
+
+    public BaseTank m_Attacker { get; private set; } //This is the tank the shot this tank...
+    private BaseTank m_Tank;
 
     public float Health { get { return m_Health; } }
+
+    public float Armor { get { return m_Armor; } }
 
     public bool HasArmor { get { return m_Armor > 0; } }
 
@@ -37,7 +43,7 @@ public class TankHealth : MonoBehaviour
             Debug.LogError("There is no tank object attached to this transform!");
     }
 
-    private void RegenerateHealth()
+    protected virtual void RegenerateHealth()
     {
         if (m_Health < m_RegenerateCap)
         {
@@ -45,7 +51,7 @@ public class TankHealth : MonoBehaviour
         }
     }
 
-    public void AddHealth(float amount)
+    public virtual void AddHealth(float amount)
     {
         m_Health += amount;
 
@@ -56,7 +62,7 @@ public class TankHealth : MonoBehaviour
         }
     }
 
-    public void AddArmor(float amount)
+    public virtual void AddArmor(float amount)
     {
         m_Armor += amount;
 
@@ -68,11 +74,12 @@ public class TankHealth : MonoBehaviour
     }
 
     //Damage can only be positive...
-    public void TakeDamage(float amount)
+    public virtual void TakeDamage(float amount, BaseTank attacker)
     {
+        m_Attacker = attacker;
+
         //Make sure damage is positive...
         amount = Mathf.Abs(amount);
-
 
         //if we have armor...
         if (m_Armor > 0)
@@ -87,6 +94,7 @@ public class TankHealth : MonoBehaviour
 
             m_Armor -= amount;
 
+
             if (m_Armor > 0)
                 return;
         }
@@ -95,10 +103,14 @@ public class TankHealth : MonoBehaviour
         m_Health -= amount;
 
         if (m_Health < 0)
+        {
             m_Health = 0;
+
+            OnDeath?.Invoke(m_Attacker);
+        }
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (!m_Tank)
             return;

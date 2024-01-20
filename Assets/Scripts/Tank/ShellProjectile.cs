@@ -11,13 +11,20 @@ public class ShellProjectile : MonoBehaviour
     float m_ThrustForce;
     float m_ProjectileRange;
 
-    public void SendProjectile(Vector3 forwardDirection, float thrustForce, float projectileRange)
+    //Flags
+    bool m_HasHit;
+
+    BaseTank m_Sender;
+
+    public void SendProjectile(Vector3 forwardDirection, float thrustForce, float projectileRange, BaseTank sender)
     {
         m_ForwardDirection = forwardDirection;
         m_ThrustForce = thrustForce;
         m_SpawnPosition = transform.position;
         m_ProjectileRange = projectileRange;
         m_TimeAlive = 0;
+        m_Sender = sender; //useful for letting the game know who killed who...
+        m_HasHit = false;
     }
 
     private void Update()
@@ -81,7 +88,7 @@ public class ShellProjectile : MonoBehaviour
 
                     if (GOExplosion.TryGetComponent(out Explosion explosion))
                     {
-                        explosion.Explode();
+                        explosion.Explode(m_Sender);
                     }
                     else
                         Debug.LogError("There is no explosion object attached to this shell explosion game object!");
@@ -92,5 +99,13 @@ public class ShellProjectile : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private void OnCollisionEnter(Collision collision) => TriggerExplosion(collision);
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (m_HasHit)
+            return;
+
+        TriggerExplosion(collision);
+
+        m_HasHit = true;
+    }
 }

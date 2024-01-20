@@ -4,7 +4,7 @@
 /// This class is used on the tank carcasses that are pooled in the object pool manager.
 /// </summary>
 /// 
-[RequireComponent(typeof(MeshCollider))]
+[RequireComponent(typeof(MeshCollider), typeof(Rigidbody))]
 public class DestroyedTank : MonoBehaviour
 {
     [Header("---------Lifetime----------")]
@@ -12,10 +12,24 @@ public class DestroyedTank : MonoBehaviour
     [SerializeField] float m_LifeTimeInSeconds = 10.0F;
     float m_TimeInScene = 0;
 
+    [Header("----------General----------")]
+    [SerializeField] float m_UpwardForceOnInitialise = 100;
+
+    Rigidbody m_RigidBody;
+
+    private void Awake()
+    {
+        m_RigidBody = GetComponent<Rigidbody>();
+    }
+
     MeshCollider m_MeshCollider;
 
-    public void InitialiseDestroyedTank()
+    public void InitialiseDestroyedTank(Vector3 initialVelocity)
     {
+        m_RigidBody.velocity = initialVelocity;
+
+        m_RigidBody.AddForce(transform.position + Vector3.up * m_UpwardForceOnInitialise, ForceMode.Impulse);
+
         if (ObjectPoolManager.Instance != null)
         {
             //Spawn a bunch of fire fx around the destoyed tank...

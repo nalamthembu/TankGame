@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
+using Random = UnityEngine.Random;
 
 public class EnemyWaveGenerator : MonoBehaviour
 {
@@ -21,10 +23,13 @@ public class EnemyWaveGenerator : MonoBehaviour
     private int m_WaveCount;
 
     private List<BaseTank> m_SpawnedEnemies = new();
+    public List<BaseTank> SpawnedEnemies { get { return m_SpawnedEnemies; } }
 
     [Header("----------Debugging----------")]
     [SerializeField] bool m_VisualiseLevelBounds;
     [SerializeField] bool m_MakeLevelBoundsSolid;
+
+    public static event Action OnSpawnWave;
 
     public static EnemyWaveGenerator Instance;
 
@@ -40,6 +45,19 @@ public class EnemyWaveGenerator : MonoBehaviour
         m_CurrentEnemyCount = m_InitialEnemyCount;
     }
 
+    private void Start()
+    {
+        GenerateWave();
+    }
+
+    private void Update()
+    {
+        if (AreAllEnemiesDefeated())
+        {
+            GenerateWave();
+        }
+    }
+
     private void OnDestroy()
     {
         Instance = null;
@@ -49,6 +67,9 @@ public class EnemyWaveGenerator : MonoBehaviour
     [ContextMenu("Generate Wave")]
     public void GenerateWave()
     {
+        if (m_WaveCount > 0)
+            OnSpawnWave?.Invoke();
+
         if (m_SpawnedEnemies.Count > 0)
         {
             m_SpawnedEnemies.Clear();

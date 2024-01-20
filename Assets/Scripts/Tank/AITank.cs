@@ -1,7 +1,7 @@
-
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
+using Random = UnityEngine.Random;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -66,8 +66,6 @@ public class AITank : BaseTank
     float m_ResetTimer;
     float m_ReverseTimer = 0;
     float m_PathCheckTimer = 0;
-    
-
 
     //Combat
     //Sqr Distance to save up on performance, I don't need the exact distance...
@@ -167,7 +165,6 @@ public class AITank : BaseTank
             m_PerimeterCheckTimer  = 0;
         }
     }
-
 
     //Eliminate your enemies!
     private void EliminateEnemies()

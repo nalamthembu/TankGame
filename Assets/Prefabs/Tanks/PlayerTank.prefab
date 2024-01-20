@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 2473790504510924763}
   - component: {fileID: 8809168769692521204}
   - component: {fileID: 3816160369121162649}
-  - component: {fileID: 9113301867701925258}
+  - component: {fileID: -7480468061917229918}
   m_Layer: 6
   m_Name: PlayerTank
   m_TagString: Untagged
@@ -173,7 +173,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 2
 --- !u!65 &2473790504510924763
@@ -233,7 +233,7 @@ MonoBehaviour:
   m_TrackSweetenerSource: {fileID: 633600548395729675}
   m_TrackSweetenerMaxVol: 0.5
   m_MaxAudioSpeed: 50
---- !u!114 &9113301867701925258
+--- !u!114 &-7480468061917229918
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -242,14 +242,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 303768895185343394}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 344a0cecbe335d549ad6aa452806bcde, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f31ab9a7da33944f9e7cfa2ce91e449, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Health: 100
   m_Armor: 0
   m_RegenerateRate: 2
   m_RegenerateCap: 50
-  m_DebugShowValues: 1
+  m_DebugShowValues: 0
 --- !u!1 &418340638724179609
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,9 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
+using Random = UnityEngine.Random;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -18,13 +21,11 @@ public class GameManager : MonoBehaviour
     [Header("----------Debugging----------")]
     [SerializeField] bool m_VisualiseLevelBounds;
     [SerializeField] bool m_MakeLevelBoundsSolid;
-    [SerializeField] bool m_DontSpawnAnyEnemies;
     [SerializeField] bool m_DontSpawnHelp;
 
     private GameObject m_PlayerGameObject;
-
     List<PickupBase> m_PickupsInScene = new();
-    
+    public static GameManager Instance;
 
     //Timers
     float m_PickupSpawnTimer = 0;
@@ -34,31 +35,92 @@ public class GameManager : MonoBehaviour
     bool m_GameHasStarted;
     bool m_GameIsOver;
 
+    //Gameplay Elements
+    int m_TotalKillsByPlayer = 0;
+    int m_WavesSurvived = 0;
+
+    //Events
+    public static event Action OnGameEnded;
+
+    //Game Returns
+    public float GameElapsedTime { get { return m_TimeSinceStartOfGame; } }
+    public int TotalKillsByPlayer { get { return m_TotalKillsByPlayer; } }
+    public int WavesSurvived { get { return m_WavesSurvived; } }
+
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+            Destroy(gameObject);
+
         SpawnPlayerInRandomPosition();
     }
 
+    private void OnDestroy()
+    {
+        Instance = null;
+        Debug.Log("Destroyed Game Manager instance!");
+    }
+
+    private void OnEnable()
+    {
+        PlayerTankHealth.OnDeath += OnPlayerDeath;
+        TankHealth.OnDeath += OnAITankDeath;
+        EnemyWaveGenerator.OnSpawnWave += OnEnemyWaveSpawn;
+    }
+
+    private void OnDisable()
+    {
+        PlayerTankHealth.OnDeath -= OnPlayerDeath;
+        TankHealth.OnDeath -= OnAITankDeath;
+        EnemyWaveGenerator.OnSpawnWave -= OnEnemyWaveSpawn;
+    }
+
+    private void OnEnemyWaveSpawn() =>  m_WavesSurvived++;
+    
+    private void OnAITankDeath(BaseTank attacker)
+    {
+        print(attacker);
+
+        if (attacker is PlayerTank)
+        {
+            m_TotalKillsByPlayer++;
+        }
+    }
+
+    private void OnPlayerDeath()
+    {
+        //stop the game...
+        m_GameIsOver = true;
+
+        //Slow Down...
+        Time.timeScale = 0.25F;
+
+        Debug.Log("Game is OVER!");
+
+        OnGameEnded?.Invoke();
+    }
+
     private void Start()
+    {
+        InitialiseGame();
+    }
+
+    private void InitialiseGame()
     {
         m_GameHasStarted = true;
         m_GameIsOver = false;
 
         m_PickupSpawnTimer = m_PickupSpawnRate;
-
-        if (EnemyWaveGenerator.Instance && !m_DontSpawnAnyEnemies)
-        {
-            EnemyWaveGenerator.Instance.GenerateWave();
-        }
     }
 
     private void Update()
     {
         if (m_GameHasStarted && !m_GameIsOver)
             m_TimeSinceStartOfGame += Time.deltaTime;
-
-        if (!m_DontSpawnAnyEnemies)
-            SpawnEnemies();
 
         if (!m_DontSpawnHelp)
             SpawnHelp();
@@ -120,15 +182,6 @@ public class GameManager : MonoBehaviour
                     m_PickupsInScene.Remove(pickup);
                 }
             }
-        }
-    }
-
-    private void SpawnEnemies()
-    {
-        if (EnemyWaveGenerator.Instance != null &&
-    EnemyWaveGenerator.Instance.AreAllEnemiesDefeated())
-        {
-            EnemyWaveGenerator.Instance.GenerateWave();
         }
     }
 

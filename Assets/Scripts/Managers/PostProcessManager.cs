@@ -34,8 +34,8 @@ public class PostProcessManager : MonoBehaviour
     private void Start()
     {
         //GET TANK HEALTH COMPONENT FROM PLAYER...
-        if (Tank.PlayerTankInstance != null)
-            Tank.PlayerTankInstance.TryGetComponent(out m_PlayerHealth);
+        if (PlayerTank.PlayerTankInstance != null)
+            PlayerTank.PlayerTankInstance.TryGetComponent(out m_PlayerHealth);
     }
 
     private void Update()
@@ -85,7 +85,7 @@ public class PostProcessManager : MonoBehaviour
             do
             {
                 //fade OUT 
-                m_CameraShakeFX.weight = Mathf.Lerp(intensityClamped, 0, timer / halfDuration - 0.1F); ;
+                m_CameraShakeFX.weight = Mathf.Lerp(intensityClamped, 0, timer / halfDuration - 0.1F);
 
                 timer += Time.deltaTime;
 

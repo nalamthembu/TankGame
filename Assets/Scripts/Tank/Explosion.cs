@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 /// <summary>
 /// This class is meant to draw an overlap sphere and cause area of affect damage,
@@ -23,6 +24,8 @@ public class Explosion : MonoBehaviour
 
     float m_TimeAlive;
 
+    public static event Action<float, float> OnExplode;
+
     //Flags
     bool m_IsExploding = false;
 
@@ -44,10 +47,9 @@ public class Explosion : MonoBehaviour
         }
     }
 
-    public void Explode()
+    public void Explode(BaseTank sender)
     {
         m_IsExploding = true;
-
 
         //Apply Camera Shake FX
         if (ThirdPersonTankCamera.Instance != null)
@@ -60,7 +62,9 @@ public class Explosion : MonoBehaviour
 
             float camShakeDuration = 0.25F;
 
-            StartCoroutine(ThirdPersonTankCamera.Instance.DoCameraShake(camShakeDuration, 5.0F, camShakeIntensity - 0.1F));
+            camShakeIntensity = Mathf.Clamp(camShakeIntensity, 0, .5F);
+
+            OnExplode?.Invoke(camShakeDuration, camShakeIntensity - 0.1F);
 
             if (PostProcessManager.Instance != null)
             {
@@ -104,7 +108,7 @@ public class Explosion : MonoBehaviour
 
                             float damageScalar = Mathf.Clamp01(m_AreaOfAffect / hit.distance);
                            
-                            tankHealth.TakeDamage(m_Damage * damageScalar);
+                            tankHealth.TakeDamage(m_Damage * damageScalar, sender);
                         }
                         
                     }

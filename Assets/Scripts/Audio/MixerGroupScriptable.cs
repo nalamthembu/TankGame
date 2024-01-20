@@ -6,6 +6,8 @@ public class MixerGroupScriptable : ScriptableObject
 {
     public Mixer[] mixers;
 
+    public MixerState[] mixerStates;
+
     private void OnValidate()
     {
         //Check for mixers with identical names
@@ -29,4 +31,12 @@ public struct Mixer
     public string mixerID;
     public AudioMixerGroup mixerGroup;
     public SoundType type;
+}
+
+
+[System.Serializable]
+public struct MixerState
+{
+    public string ID;
+    public AudioMixerSnapshot mixerSnapshot;
 }
