@@ -19,4 +19,13 @@ MonoBehaviour:
   - soundID: GunReady
     clips:
     - {fileID: 8300000, guid: baf7b1c1a3f47a649a3cc244f22bfe63, type: 3}
+  - soundID: Prompt
+    clips:
+    - {fileID: 8300000, guid: 2b49df5f2f0325542b2e9b6cdba9c3e0, type: 3}
+  - soundID: ButtonSelect
+    clips:
+    - {fileID: 8300000, guid: b530dc1c05f77524cb5dd8b1542b4578, type: 3}
+  - soundID: ButtonReturn
+    clips:
+    - {fileID: 8300000, guid: c856e2b28a393484b8bf7a9bda4df92f, type: 3}
   FEMixerGroup: {fileID: 6729998088901574412, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}

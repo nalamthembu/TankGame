@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject m_PlayerPrefab;
     [SerializeField] bool m_SpawnInRandomLocation = true;
     [SerializeField] Vector2 m_LevelSize = new(250, 250);
+    [SerializeField] GameState m_GameState = GameState.NOT_RUNNING;
 
     [Header("----------Player Aid----------")]
     [Tooltip("How often should we spawn a pickup?")]
@@ -23,24 +24,35 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool m_MakeLevelBoundsSolid;
     [SerializeField] bool m_DontSpawnHelp;
 
+    [Header("----------Score System----------")]
+    [SerializeField] int m_KillScore = 100;
+    [SerializeField] int m_PickupHealthScore = 10;
+    [SerializeField] int m_PickupArmorScore = 15;
+    [SerializeField] int m_SurviveWaveScore = 12;
+    [SerializeField] int m_SurvivedMoreThan5WavesScore = 13;
+
     private GameObject m_PlayerGameObject;
     List<PickupBase> m_PickupsInScene = new();
+    List<Body> m_FrozenTanks = new();
     public static GameManager Instance;
+
+    //Flags
+    bool m_AllTanksAreFrozen;
 
     //Timers
     float m_PickupSpawnTimer = 0;
     float m_TimeSinceStartOfGame = 0;
 
-    //Flags
-    bool m_GameHasStarted;
-    bool m_GameIsOver;
-
     //Gameplay Elements
     int m_TotalKillsByPlayer = 0;
     int m_WavesSurvived = 0;
+    int m_Score;
 
     //Events
+    public static event Action OnGamePaused;
+    public static event Action OnGameResume;
     public static event Action OnGameEnded;
+    public static event Action<int> OnScoreChange;
 
     //Game Returns
     public float GameElapsedTime { get { return m_TimeSinceStartOfGame; } }
@@ -67,9 +79,11 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
+        PickupBase.OnPickUp += OnPickUpRetrieved;
         PlayerTankHealth.OnDeath += OnPlayerDeath;
         TankHealth.OnDeath += OnAITankDeath;
         EnemyWaveGenerator.OnSpawnWave += OnEnemyWaveSpawn;
+        PauseMenuManager.OnPauseMenuClose += OnPauseMenuClose;
     }
 
     private void OnDisable()
@@ -77,9 +91,45 @@ public class GameManager : MonoBehaviour
         PlayerTankHealth.OnDeath -= OnPlayerDeath;
         TankHealth.OnDeath -= OnAITankDeath;
         EnemyWaveGenerator.OnSpawnWave -= OnEnemyWaveSpawn;
+        PauseMenuManager.OnPauseMenuClose -= OnPauseMenuClose;
     }
 
-    private void OnEnemyWaveSpawn() =>  m_WavesSurvived++;
+    private void OnPauseMenuClose() => SetGameState(GameState.RUNNING);
+
+    private void OnPickUpRetrieved(PickupBase pickUp)
+    {
+        switch (pickUp)
+        {
+            case HealthPickup:
+                AddToScore(m_PickupHealthScore);
+                break;
+
+            case ShieldPickup:
+                AddToScore(m_PickupArmorScore);
+                break;
+        }
+    }
+
+    private void OnEnemyWaveSpawn()
+    {
+        m_WavesSurvived++;
+
+        if (m_WavesSurvived > 1)
+        {
+            AddToScore(m_SurviveWaveScore);
+
+            if (m_WavesSurvived > 5)
+                AddToScore(m_SurvivedMoreThan5WavesScore);
+        }
+    }
+
+    private void AddToScore(int amount)
+    {
+        m_Score += amount;
+
+        //Let all the listeners know what the new score is.
+        OnScoreChange?.Invoke(m_Score);
+    }
     
     private void OnAITankDeath(BaseTank attacker)
     {
@@ -88,13 +138,15 @@ public class GameManager : MonoBehaviour
         if (attacker is PlayerTank)
         {
             m_TotalKillsByPlayer++;
+
+            AddToScore(m_KillScore);
         }
     }
 
     private void OnPlayerDeath()
     {
         //stop the game...
-        m_GameIsOver = true;
+        m_GameState = GameState.OVER;
 
         //Slow Down...
         Time.timeScale = 0.25F;
@@ -111,19 +163,117 @@ public class GameManager : MonoBehaviour
 
     private void InitialiseGame()
     {
-        m_GameHasStarted = true;
-        m_GameIsOver = false;
-
         m_PickupSpawnTimer = m_PickupSpawnRate;
+
+        //TO-DO : Add timer before game starts...3,2,1, GO!
+
+        SetGameState(GameState.RUNNING);
     }
 
     private void Update()
     {
-        if (m_GameHasStarted && !m_GameIsOver)
-            m_TimeSinceStartOfGame += Time.deltaTime;
+        switch (m_GameState)
+        {
+            case GameState.RUNNING:
 
-        if (!m_DontSpawnHelp)
-            SpawnHelp();
+                if (m_AllTanksAreFrozen)
+                    UnFreezeAllTanks();
+
+                //Check if the player pressed pause...
+                if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    SetGameState(GameState.PAUSED);
+                }
+
+                m_TimeSinceStartOfGame += Time.deltaTime;
+
+                if (!m_DontSpawnHelp)
+                    SpawnHelp();
+
+                //TO-DO : If we eliminate the last tank in the wave, do a cool slow-mo view of the destruction.
+
+                break;
+
+            case GameState.PAUSED:
+
+                ProcessPausedGame();
+
+                break;
+
+            case GameState.OVER:
+
+                //TO-DO : Compile results and display them...
+
+                //TO-DO : Save results...
+
+                return;
+        }
+    }
+
+    private void ProcessPausedGame()
+    {
+        //Check if the player pressed RESUME...
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SetGameState(GameState.RUNNING);
+        }
+
+        if (!m_AllTanksAreFrozen)
+        FreezeAllTanks();
+    }
+
+    private void UnFreezeAllTanks()
+    {
+        if (m_AllTanksAreFrozen)
+        {
+            //UN-freeze all tanks
+            foreach (Body tank in m_FrozenTanks)
+            {
+                tank.UnFreeze();
+            }
+
+            m_AllTanksAreFrozen = false;
+        }
+    }
+
+    private void FreezeAllTanks()
+    {
+        if (m_AllTanksAreFrozen)
+        {
+            Debug.LogWarning("All tanks are already frozen!");
+            return;
+        }
+
+        BaseTank[] tanksInScene = FindObjectsOfType<BaseTank>();
+
+        m_FrozenTanks.Clear();
+
+        //freeze all tanks
+        foreach (BaseTank tank in tanksInScene)
+        {
+            if (tank.TryGetComponent<Rigidbody>(out var rigidbody))
+            {
+                m_FrozenTanks.Add(new(rigidbody, rigidbody.velocity));
+            }
+        }
+
+        m_AllTanksAreFrozen = true;
+    }
+
+    private void SetGameState(GameState newState)
+    { 
+        m_GameState = newState;
+
+        switch (m_GameState)
+        {
+            case GameState.PAUSED:
+                OnGamePaused?.Invoke();
+                break;
+
+            case GameState.RUNNING:
+                OnGameResume?.Invoke();
+                break;
+        }
     }
 
     private void SpawnHelp()
@@ -231,5 +381,26 @@ public class GameManager : MonoBehaviour
             else
                 Gizmos.DrawCube(Vector3.zero, new Vector3(m_LevelSize.x, 1, m_LevelSize.y));
         }
+    }
+}
+
+public struct Body
+{
+    private Vector3 m_PreviousVelocity;
+    private Rigidbody m_RigidBody;
+
+    public Body(Rigidbody rigidbody, Vector3 previousVelocity)
+    {
+        m_PreviousVelocity = previousVelocity;
+        m_RigidBody = rigidbody;
+        Freeze();
+    }
+
+    public void Freeze() => m_RigidBody.isKinematic = true;
+
+    public void UnFreeze()
+    {
+        m_RigidBody.isKinematic = false;
+        m_RigidBody.velocity = m_PreviousVelocity;
     }
 }

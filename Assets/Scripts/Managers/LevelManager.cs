@@ -19,6 +19,9 @@ public class LevelManager : MonoBehaviour
 
     public static event Action OnLoadingStart;
 
+    //Flags
+    bool m_IsLoading;
+
     private void Awake()
     {
         if (Instance == null)
@@ -65,7 +68,10 @@ public class LevelManager : MonoBehaviour
 
     public void LoadLevel(int index)
     {
-        StartCoroutine(LoadLevel_Coroutine(index));
+        if (!m_IsLoading)
+            StartCoroutine(LoadLevel_Coroutine(index));
+
+        m_IsLoading = true;
     }
 
     IEnumerator LoadLevel_Coroutine(int index)
@@ -171,6 +177,8 @@ public class LevelManager : MonoBehaviour
 
         m_BlackScreen.gameObject.SetActive(false);
 
+        m_IsLoading = false;
+
         OnLoadingComplete?.Invoke();
     }
 }
@@ -202,6 +210,13 @@ public class LoadingScreen
         if (timer >= m_DurationBetweenEachTip)
         {
             m_LoadingScreenTipText.text = m_LoadingScreenTips.GetRandomTip();
+
+            if (SoundManager.Instance)
+            {
+                SoundManager.Instance.PlayFESound("Prompt");
+            }
+            else
+                Debug.LogError("There is no Sound Manager in this scene!");
 
             timer = 0;
         }

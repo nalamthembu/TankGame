@@ -29,6 +29,13 @@ public class TitleScreenBehaviour : MonoBehaviour
 
             OnGameStart?.Invoke();
 
+            if (SoundManager.Instance)
+            {
+                SoundManager.Instance.PlayFESound("GunReady");
+            }
+            else
+                Debug.LogError("There is no Sound Manager in this scene!");
+
             //Disable this script.
             this.enabled = false;
 

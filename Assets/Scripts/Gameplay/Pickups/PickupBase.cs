@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 [RequireComponent(typeof(SphereCollider))]
 public class PickupBase : MonoBehaviour
@@ -10,6 +11,8 @@ public class PickupBase : MonoBehaviour
     [SerializeField] protected float m_SpinRate = 100;
     [SerializeField] protected float m_HeightOscillationRate = 5;
     [SerializeField] protected float m_OscillationSpeed = 5;
+
+    public static event Action<PickupBase> OnPickUp;
 
     protected virtual void Awake()
     {
@@ -45,7 +48,11 @@ public class PickupBase : MonoBehaviour
         }
     }
 
-    protected virtual void DoPlayerPickUp() => PlayerPickupSound();
+    protected virtual void DoPlayerPickUp()
+    {
+        OnPickUp?.Invoke(this);
+        PlayerPickupSound();
+    }
 
     protected virtual void PlayerPickupSound() { }
 

@@ -49,7 +49,7 @@ public class GameAudioStateManager : MonoBehaviour
 
         if (CurrentMixerState != "FrontendOnly")
         {
-            SoundManager.Instance.TransitionToMixerState("FrontendOnly", m_DeathTransitionTime);
+            SoundManager.Instance.TransitionToMixerState("FrontendOnly", m_FrontendOnlyTransitionTime);
         }
     }
 

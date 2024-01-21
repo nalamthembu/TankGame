@@ -72,18 +72,17 @@ public class MiniMapHUD : HUD
         BaseTank.OnSpawn += OnTankSpawn;
         PlayerTankHealth.OnHealthChange += OnPlayerHealthChange;
     }
-
-    private void OnPlayerHealthChange(float health, float armor)
-    {
-        m_PlayerHealthSlider.value = health;
-        m_PlayerArmorSlider.value = armor;
-    }
-
     protected override void OnDisable()
     {
         base.OnDisable();
         BaseTank.OnSpawn -= OnTankSpawn;
         PlayerTankHealth.OnHealthChange -= OnPlayerHealthChange;
+    }
+
+    private void OnPlayerHealthChange(float health, float armor)
+    {
+        m_PlayerHealthSlider.value = health;
+        m_PlayerArmorSlider.value = armor;
     }
 
     private void OnTankSpawn(BaseTank spawnedTank)

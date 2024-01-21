@@ -18,6 +18,8 @@ public class TankHealth : MonoBehaviour
 
     public static event Action<BaseTank> OnDeath;
 
+    public static event Action<TankHealth> OnRemoveHealthWidget;
+
     public BaseTank m_Attacker { get; private set; } //This is the tank the shot this tank...
     private BaseTank m_Tank;
 
@@ -107,6 +109,8 @@ public class TankHealth : MonoBehaviour
             m_Health = 0;
 
             OnDeath?.Invoke(m_Attacker);
+
+            OnRemoveHealthWidget?.Invoke(this);
         }
     }
 

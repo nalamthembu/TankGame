@@ -7,6 +7,7 @@ public class GameStatsHUD : HUD
     [SerializeField] TMP_Text m_ElapsedTimeText;
     [SerializeField] TMP_Text m_KillCounterText;
     [SerializeField] TMP_Text m_WaveCounterText;
+    [SerializeField] TMP_Text m_ScoreText;
 
     public static GameStatsHUD Instance;
 
@@ -21,6 +22,9 @@ public class GameStatsHUD : HUD
         if (m_KillCounterText is null)
             Debug.LogError("WAVE COUNTER text var is not assigned!");
 
+        if (m_ScoreText is null)
+            Debug.LogError("SCORE text var is not assigned!");
+
         if (Instance == null)
         {
             Instance = this;
@@ -32,6 +36,16 @@ public class GameStatsHUD : HUD
     protected override void OnEnable()
     {
         base.OnEnable();
+
+        GameManager.OnScoreChange += OnUpdateScore;
+    }
+
+    private void OnUpdateScore(int newScore)
+    {
+        if (m_ScoreText)
+        {
+            m_ScoreText.text = newScore.ToString();
+        }
     }
 
     protected override void OnDisable()
