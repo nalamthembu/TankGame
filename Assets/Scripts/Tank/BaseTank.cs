@@ -74,12 +74,16 @@ public class BaseTank : MonoBehaviour
     [SerializeField] AudioSource m_TankBodyAudioSource;
 
     //Flags
+    protected bool m_IsFrozen;
     protected bool m_IsReloading;
     public bool IsFiring { get; private set; }
+
+
     public Vector3 CurrentVelocity { get { return m_RigidBody.velocity; } }
     protected bool m_IsDoneReloading;
 
     protected Rigidbody m_RigidBody;
+
 
     //Events
     public static event Action<BaseTank> OnSpawn;
@@ -138,10 +142,16 @@ public class BaseTank : MonoBehaviour
             Debug.LogError("There is no rigidbody attached to this tank!");
     }
 
-    protected virtual void Start()
+    protected virtual void Start() => OnSpawn?.Invoke(this);
+
+    protected virtual void OnEnable()
     {
-        OnSpawn?.Invoke(this);
+        GameManager.OnGamePaused += OnGamePaused;
+        GameManager.OnGameResume += OnGameResume;
     }
+
+    private void OnGameResume() => m_IsFrozen = false;
+    private void OnGamePaused() => m_IsFrozen = true;
 
     protected void RotateTurret(Vector3 LookAtTarget)
     {

@@ -24,6 +24,8 @@ public class GameAudioStateManager : MonoBehaviour
         PlayerTankHealth.OnDeath += OnPlayerDeath;
         LevelManager.OnLoadingStart += OnLoadingStart;
         LevelManager.OnLoadingComplete += OnLoadingComplete;
+        GameManager.OnGamePaused += OnGamePaused;
+        GameManager.OnGameResume += OnGameResume;
     }
 
     private void OnDisable()
@@ -32,55 +34,33 @@ public class GameAudioStateManager : MonoBehaviour
         PlayerTankHealth.OnDeath -= OnPlayerDeath;
         LevelManager.OnLoadingStart -= OnLoadingStart;
         LevelManager.OnLoadingComplete -= OnLoadingComplete;
+        GameManager.OnGamePaused -= OnGamePaused;
+        GameManager.OnGameResume -= OnGameResume;
     }
-    private void OnLoadingComplete()
+
+    private void OnGameResume() => SwitchToNormalGameSound();
+    private void OnLoadingComplete() => SwitchToNormalGameSound();
+    private void OnLoadingStart() => SwitchToFrontEndOnly();
+    private void OnPlayerDeath() => SwitchToDeathGameSound();
+    private void OnGamePaused() => SwitchToFrontEndOnly();
+
+    private void SwitchToNormalGameSound() => SoundManager.Instance.TransitionToMixerState("Normal", m_NormalStateTransitionTime);
+    private void SwitchToFrontEndOnly () => SoundManager.Instance.TransitionToMixerState("FrontendOnly", m_FrontendOnlyTransitionTime);
+    private void SwitchToDeathGameSound()
     {
-        string CurrentMixerState = SoundManager.Instance.CurrentMixerStateID;
-
-        if (CurrentMixerState != "Normal")
-        {
-            SoundManager.Instance.TransitionToMixerState("Normal", m_NormalStateTransitionTime);
-        }
+        SoundManager.Instance.TransitionToMixerState("Death", m_DeathTransitionTime);
+        SoundManager.Instance.PlayFESound("Death");
     }
+    private void SwitchToLowHealthGameSound() => SoundManager.Instance.TransitionToMixerState("LowHealth", m_DeathTransitionTime);
 
-    private void OnLoadingStart()
-    {
-        string CurrentMixerState = SoundManager.Instance.CurrentMixerStateID;
-
-        if (CurrentMixerState != "FrontendOnly")
-        {
-            SoundManager.Instance.TransitionToMixerState("FrontendOnly", m_FrontendOnlyTransitionTime);
-        }
-    }
-
-
-    private void OnPlayerDeath()
-    {
-        string CurrentMixerState = SoundManager.Instance.CurrentMixerStateID;
-
-        if (CurrentMixerState != "Death")
-        {
-            SoundManager.Instance.TransitionToMixerState("Death", m_DeathTransitionTime);
-            SoundManager.Instance.PlayFESound("Death");
-        }
-    }
 
     private void OnPlayerHealthChange(float health, float armor)
     {
-        if (!SoundManager.Instance)
-            return;
+        if (health > 0 && health <= 30)
+            SwitchToLowHealthGameSound();
 
-        string CurrentMixerState = SoundManager.Instance.CurrentMixerStateID;
-
-        if (health > 0 && health <= 30 && CurrentMixerState != "LowHealth")
-        {
-            SoundManager.Instance.TransitionToMixerState("LowHealth", m_LowHealthTransitionTime);
-        }
-
-        if (health > 30 && CurrentMixerState != "Normal")
-        {
-            SoundManager.Instance.TransitionToMixerState("Normal", m_NormalStateTransitionTime);
-        }
+        if (health > 30)
+            SwitchToNormalGameSound();
     }
 
 }

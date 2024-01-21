@@ -64,6 +64,9 @@ public class ThirdPersonTankCamera : ThirdPersonCameraSingleTarget
 
     public override void Update()
     {
+        if (GameManager.Instance && GameManager.Instance.GameIsPaused)
+            return;
+
         base.Update();
 
         //Change Camera View

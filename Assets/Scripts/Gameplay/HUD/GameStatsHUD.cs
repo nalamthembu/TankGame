@@ -53,13 +53,6 @@ public class GameStatsHUD : HUD
         base.OnDisable();
     }
 
-    private void OnDestroy()
-    {
-        Instance = null;
-
-        Debug.Log("Destroyed GameStatHUD Instance!");
-    }
-
     private void Update()
     {
         if (GameManager.Instance != null)

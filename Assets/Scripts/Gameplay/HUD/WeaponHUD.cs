@@ -12,6 +12,12 @@ public class WeaponHUD : HUD
     [SerializeField] Color m_ReloadingColour = Color.yellow;
     [SerializeField] Color m_ReadyColor = Color.green;
 
+    [Header("----------Crosshair----------")]
+    [SerializeField] RectTransform m_Crosshair;
+
+    Camera m_Camera;
+
+
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -22,6 +28,28 @@ public class WeaponHUD : HUD
     protected override void OnDisable()
     {
         base.OnDisable();
+    }
+
+    private void Awake() => m_Camera = Camera.main;
+
+    private void Update()
+    {
+        ProcessMouseInput();
+    }
+
+    private void ProcessMouseInput()
+    {
+        m_Crosshair.position = Input.mousePosition;
+
+        if (m_Camera != null)
+        {
+            Ray ray = m_Camera.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                m_Crosshair.gameObject.SetActive(hit.collider.name != PlayerTank.PlayerTankInstance.gameObject.name);
+            }
+        }
     }
 
     private void OnReloadComplete()

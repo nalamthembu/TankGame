@@ -29,11 +29,16 @@ public class ShellProjectile : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance && GameManager.Instance.GameIsPaused)
+            return;
+
         //Look at target
         transform.forward = m_ForwardDirection;
 
         //Move forward 
         transform.position += m_ThrustForce * Time.deltaTime * transform.forward;
+
+        transform.eulerAngles += 1000.0F * Vector3.forward;
 
         //Move Down (Gravity)
         transform.position += Physics.gravity / 8 * Time.deltaTime;

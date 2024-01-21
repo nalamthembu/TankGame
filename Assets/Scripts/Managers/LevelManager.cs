@@ -37,12 +37,6 @@ public class LevelManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    private void OnDestroy()
-    {
-        Instance = null;
-        Debug.Log("Destroyed Level Manager Instance");
-    }
-
     private void OnEnable()
     {
         TitleScreenBehaviour.OnGameStart += OnGameStart;
@@ -76,8 +70,14 @@ public class LevelManager : MonoBehaviour
 
     IEnumerator LoadLevel_Coroutine(int index)
     {
+        //Make sure game plays at 1x Speed
+        Time.timeScale = 1;
+
         //Let everyone know...
         OnLoadingStart?.Invoke();
+
+        //Reset Loading Bar
+        m_LoadingScreen.SetProgress(0);
 
         //FADE SCREEN TO BLACK
 
@@ -105,6 +105,8 @@ public class LevelManager : MonoBehaviour
         //WAIT
         yield return new WaitForSeconds(1);
 
+        //FADE SCREEN TO CLEAR
+
         while (m_BlackScreen.color.a > 0)
         {
             blackScreenColor.a -= Time.deltaTime;
@@ -120,6 +122,9 @@ public class LevelManager : MonoBehaviour
         }
 
         m_BlackScreen.gameObject.SetActive(false);
+
+        //WAIT
+        yield return new WaitForSeconds(1);
 
         //START LOADING LEVEL...
         AsyncOperation operation = SceneManager.LoadSceneAsync(index);
@@ -205,6 +210,9 @@ public class LoadingScreen
 
     public void Update()
     {
+        if (m_ProgressBar.value >= m_ProgressBar.maxValue)
+            return;
+
         timer += Time.deltaTime;
 
         if (timer >= m_DurationBetweenEachTip)

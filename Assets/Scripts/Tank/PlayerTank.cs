@@ -9,8 +9,6 @@ public class PlayerTank : BaseTank
 {
     Camera m_Camera;
 
-
-
     public static PlayerTank PlayerTankInstance;
 
     public static event Action<float, float> OnPlayerShot;
@@ -20,7 +18,6 @@ public class PlayerTank : BaseTank
     public static event Action OnPlayerIsDoneReloading;
 
     public static event Action<float, float> OnPlayerBigCollision;
-
 
     protected override void Awake()
     {
@@ -50,8 +47,16 @@ public class PlayerTank : BaseTank
 
     protected override void Update()
     {
+        if (m_IsFrozen)
+            return;
+
         base.Update();
 
+        ProcessMouseInput();
+    }
+
+    private void ProcessMouseInput()
+    {
         if (m_Camera != null)
         {
             Ray ray = m_Camera.ScreenPointToRay(Input.mousePosition);

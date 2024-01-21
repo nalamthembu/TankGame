@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool m_SpawnInRandomLocation = true;
     [SerializeField] Vector2 m_LevelSize = new(250, 250);
     [SerializeField] GameState m_GameState = GameState.NOT_RUNNING;
+    [SerializeField] float m_TimeBeforeShowingFinalScore;
 
     [Header("----------Player Aid----------")]
     [Tooltip("How often should we spawn a pickup?")]
@@ -33,15 +34,18 @@ public class GameManager : MonoBehaviour
 
     private GameObject m_PlayerGameObject;
     List<PickupBase> m_PickupsInScene = new();
-    List<Body> m_FrozenTanks = new();
+    List<Body> m_FrozenObjects = new();
     public static GameManager Instance;
 
     //Flags
-    bool m_AllTanksAreFrozen;
+    bool m_AllObjectsAreFrozen;
+    bool m_GameIsPaused;
+    bool m_ShownFinalScore;
 
     //Timers
     float m_PickupSpawnTimer = 0;
     float m_TimeSinceStartOfGame = 0;
+    float m_EndOfGameTimer = 0;
 
     //Gameplay Elements
     int m_TotalKillsByPlayer = 0;
@@ -53,11 +57,13 @@ public class GameManager : MonoBehaviour
     public static event Action OnGameResume;
     public static event Action OnGameEnded;
     public static event Action<int> OnScoreChange;
+    public static event Action<int, int, float> OnShowEndOfGameScreen;
 
     //Game Returns
     public float GameElapsedTime { get { return m_TimeSinceStartOfGame; } }
     public int TotalKillsByPlayer { get { return m_TotalKillsByPlayer; } }
     public int WavesSurvived { get { return m_WavesSurvived; } }
+    public bool GameIsPaused { get { return m_GameIsPaused; } }
 
     private void Awake()
     {
@@ -71,11 +77,6 @@ public class GameManager : MonoBehaviour
         SpawnPlayerInRandomPosition();
     }
 
-    private void OnDestroy()
-    {
-        Instance = null;
-        Debug.Log("Destroyed Game Manager instance!");
-    }
 
     private void OnEnable()
     {
@@ -176,12 +177,17 @@ public class GameManager : MonoBehaviour
         {
             case GameState.RUNNING:
 
-                if (m_AllTanksAreFrozen)
-                    UnFreezeAllTanks();
+                m_GameIsPaused = false;
+
+                Cursor.visible = false;
+
+                if (m_AllObjectsAreFrozen)
+                    UnFreezeAllDynamicObjects();
 
                 //Check if the player pressed pause...
                 if (Input.GetKeyDown(KeyCode.Escape))
                 {
+                    m_GameIsPaused = true;
                     SetGameState(GameState.PAUSED);
                 }
 
@@ -196,13 +202,40 @@ public class GameManager : MonoBehaviour
 
             case GameState.PAUSED:
 
+                Cursor.visible = true;
+
                 ProcessPausedGame();
 
                 break;
 
             case GameState.OVER:
 
-                //TO-DO : Compile results and display them...
+                //TO-DO : Compile results and display them after a few seconds...
+
+                if (!m_ShownFinalScore)
+                {
+                    m_EndOfGameTimer += Time.deltaTime;
+                    
+                    if (m_EndOfGameTimer >= m_TimeBeforeShowingFinalScore)
+                    {
+                        m_ShownFinalScore = true;
+
+                        //Show us...
+
+                        int scoreBeforeAddingTime = m_Score;
+
+                        //Add the elapsed time bonus...
+
+                        m_Score += (int) m_TimeSinceStartOfGame / 100;
+
+                        OnShowEndOfGameScreen?.Invoke(scoreBeforeAddingTime, m_Score, m_TimeSinceStartOfGame); 
+
+                        m_EndOfGameTimer = 0;
+                    }
+                }
+
+                //Show the cursor...
+                Cursor.visible = true;
 
                 //TO-DO : Save results...
 
@@ -212,52 +245,71 @@ public class GameManager : MonoBehaviour
 
     private void ProcessPausedGame()
     {
+        m_GameIsPaused = true;
+
         //Check if the player pressed RESUME...
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             SetGameState(GameState.RUNNING);
-        }
 
-        if (!m_AllTanksAreFrozen)
-        FreezeAllTanks();
-    }
+            m_GameIsPaused = false;
 
-    private void UnFreezeAllTanks()
-    {
-        if (m_AllTanksAreFrozen)
-        {
-            //UN-freeze all tanks
-            foreach (Body tank in m_FrozenTanks)
-            {
-                tank.UnFreeze();
-            }
-
-            m_AllTanksAreFrozen = false;
-        }
-    }
-
-    private void FreezeAllTanks()
-    {
-        if (m_AllTanksAreFrozen)
-        {
-            Debug.LogWarning("All tanks are already frozen!");
             return;
         }
 
-        BaseTank[] tanksInScene = FindObjectsOfType<BaseTank>();
+        if (!m_AllObjectsAreFrozen)
+        FreezeAllDynamicObjects();
+    }
 
-        m_FrozenTanks.Clear();
+    private void UnFreezeAllDynamicObjects()
+    {
+        if (m_AllObjectsAreFrozen)
+        {
+            //Freeze all particles
+            ParticleSystem[] particleSystems = FindObjectsOfType<ParticleSystem>();
+
+            foreach (ParticleSystem particle in particleSystems)
+                particle.Play(true);
+            
+            //UN-freeze all tanks
+            foreach (Body body in m_FrozenObjects)
+            {
+                body.UnFreeze();
+            }
+
+            m_AllObjectsAreFrozen = false;
+        }
+    }
+
+    private void FreezeAllDynamicObjects()
+    {
+        if (m_AllObjectsAreFrozen)
+        {
+            Debug.LogWarning("All objects are already frozen!");
+            return;
+        }
+        
+        //Freeze all particles
+        ParticleSystem[] particleSystems = FindObjectsOfType<ParticleSystem>();
+
+        foreach(ParticleSystem particle in particleSystems)
+            particle.Pause(true);
+        
+
+        Rigidbody[] rigidBodiesInScene = FindObjectsOfType<Rigidbody>();
+
+        m_FrozenObjects.Clear();
 
         //freeze all tanks
-        foreach (BaseTank tank in tanksInScene)
+        foreach (Rigidbody body in rigidBodiesInScene)
         {
-            if (tank.TryGetComponent<Rigidbody>(out var rigidbody))
-            {
-                m_FrozenTanks.Add(new(rigidbody, rigidbody.velocity));
-            }
+            if (body.isKinematic)
+                continue;
+
+            m_FrozenObjects.Add(new(body, body.velocity));
         }
 
-        m_AllTanksAreFrozen = true;
+        m_AllObjectsAreFrozen = true;
     }
 
     private void SetGameState(GameState newState)
@@ -337,9 +389,14 @@ public class GameManager : MonoBehaviour
 
     private void SpawnPlayerInRandomPosition()
     {
+        if (m_PlayerPrefab is null)
+        {
+            Debug.LogError("There is no player prefab assigned!");
+            return;
+        }
+
         if (m_SpawnInRandomLocation)
             m_PlayerGameObject = Instantiate(m_PlayerPrefab, GetRandomPositionInLevelBounds(), Quaternion.identity);
-
     }
 
     private Vector3 GetRandomPositionInLevelBounds()
@@ -396,7 +453,10 @@ public struct Body
         Freeze();
     }
 
-    public void Freeze() => m_RigidBody.isKinematic = true;
+    public void Freeze()
+    {
+        m_RigidBody.isKinematic = true;
+    }
 
     public void UnFreeze()
     {

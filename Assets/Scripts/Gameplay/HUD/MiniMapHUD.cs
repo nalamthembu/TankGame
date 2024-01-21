@@ -38,12 +38,6 @@ public class MiniMapHUD : HUD
             Destroy(gameObject);
     }
 
-    private void OnDestroy()
-    {
-        Instance = null;
-        Debug.Log("Destroyed MiniMapHUD Instance!");
-    }
-
     private void Start()
     {
         if (!PlayerTank.PlayerTankInstance)

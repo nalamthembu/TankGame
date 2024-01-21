@@ -31,6 +31,9 @@ public class Explosion : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance && GameManager.Instance.GameIsPaused)
+            return;
+
         m_TimeAlive += Time.deltaTime;
 
         if (m_TimeAlive >= m_LifeTimeInSeconds)

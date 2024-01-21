@@ -104,6 +104,9 @@ public class AITank : BaseTank
 
     protected override void Update()
     {
+        if (m_IsFrozen)
+            return;
+
         base.Update();
 
         if (m_IsCheckingForEnemies)

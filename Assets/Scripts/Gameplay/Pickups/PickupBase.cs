@@ -29,6 +29,9 @@ public class PickupBase : MonoBehaviour
     //Spinny Pickup!
     protected void DoPickUpBobAndHover()
     {
+        if (GameManager.Instance && GameManager.Instance.GameIsPaused)
+            return;
+
         transform.eulerAngles += m_SpinRate * Time.deltaTime * Vector3.up;
 
         transform.position += m_HeightOscillationRate * Time.deltaTime * Mathf.Sin(Time.time * m_OscillationSpeed) * Vector3.up;
