@@ -139,7 +139,7 @@ MonoBehaviour:
   m_DisplayRelativeVelocityMagnitude: 0
   m_TotalAmmo: 1000
   m_CurrentClip: 0
-  m_MaxClip: 1
+  m_MaxClip: 2
   m_ReloadTimeInSeconds: 2
   m_ProjectileThrust: 100
   m_ProjectileRange: 1000
@@ -231,7 +231,7 @@ MonoBehaviour:
   m_EngineSoundModule: {fileID: 3927993651002195186}
   m_TrackAudioSource: {fileID: 7398333925124148910}
   m_TrackSweetenerSource: {fileID: 633600548395729675}
-  m_TrackSweetenerMaxVol: 0.5
+  m_TrackSweetenerMaxVol: 0.7
   m_MaxAudioSpeed: 50
 --- !u!114 &-7480468061917229918
 MonoBehaviour:

@@ -56,6 +56,8 @@ public class SoundManager : MonoBehaviour
 
         m_FESource.playOnAwake = false;
 
+        m_FESource.bypassReverbZones = true;
+
         m_FESource.outputAudioMixerGroup = m_MixerDict[SoundType.FRONTEND].mixerGroup;
     }
 
@@ -285,11 +287,13 @@ public class SoundManager : MonoBehaviour
     }
 
     //Plays frontend sound out of the Frontend AudioSource (UI/Menu Sound essentially)
-    public void PlayFESound(string soundID)
+    public void PlayFESound(string soundID, float volume = 1)
     {
         if (m_FESoundDict.TryGetValue(soundID, out FESound sound))
         {
             m_FESource.clip = sound.GetRandomClip();
+
+            m_FESource.volume = volume;
 
             //Mixer group is already set when FESource was initialised (Check InitialiseFrontendSoundSource())
 

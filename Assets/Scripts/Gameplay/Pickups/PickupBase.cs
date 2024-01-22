@@ -57,7 +57,13 @@ public class PickupBase : MonoBehaviour
         PlayerPickupSound();
     }
 
-    protected virtual void PlayerPickupSound() { }
+    protected virtual void PlayerPickupSound()
+    {
+        if (SoundManager.Instance)
+        {
+            SoundManager.Instance.PlayFESound("Pickup");
+        }
+    }
 
     protected virtual void OnTriggerEnter(Collider other)
     {

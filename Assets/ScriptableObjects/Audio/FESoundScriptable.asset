@@ -28,4 +28,7 @@ MonoBehaviour:
   - soundID: ButtonReturn
     clips:
     - {fileID: 8300000, guid: c856e2b28a393484b8bf7a9bda4df92f, type: 3}
+  - soundID: Pickup
+    clips:
+    - {fileID: 8300000, guid: 773c209121dd5774b975be0d34c3a9c6, type: 3}
   FEMixerGroup: {fileID: 6729998088901574412, guid: a57bd041240555a40814f7358bc4c4f6, type: 2}

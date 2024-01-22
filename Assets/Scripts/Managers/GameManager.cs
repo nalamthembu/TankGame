@@ -226,7 +226,7 @@ public class GameManager : MonoBehaviour
 
                         //Add the elapsed time bonus...
 
-                        m_Score += (int) m_TimeSinceStartOfGame / 100;
+                        m_Score += (int)m_TimeSinceStartOfGame;
 
                         OnShowEndOfGameScreen?.Invoke(scoreBeforeAddingTime, m_Score, m_TimeSinceStartOfGame); 
 

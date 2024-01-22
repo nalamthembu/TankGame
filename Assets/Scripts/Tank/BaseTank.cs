@@ -150,6 +150,12 @@ public class BaseTank : MonoBehaviour
         GameManager.OnGameResume += OnGameResume;
     }
 
+    protected virtual void OnDisable()
+    {
+        GameManager.OnGamePaused -= OnGamePaused;
+        GameManager.OnGameResume -= OnGameResume;
+    }
+
     private void OnGameResume() => m_IsFrozen = false;
     private void OnGamePaused() => m_IsFrozen = true;
 

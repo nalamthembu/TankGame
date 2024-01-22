@@ -28,6 +28,8 @@ public class WeaponHUD : HUD
     protected override void OnDisable()
     {
         base.OnDisable();
+        PlayerTank.OnPlayerReload -= OnReload;
+        PlayerTank.OnPlayerIsDoneReloading -= OnReloadComplete;
     }
 
     private void Awake() => m_Camera = Camera.main;
@@ -58,7 +60,7 @@ public class WeaponHUD : HUD
         {
             //Play Sound
             if (SoundManager.Instance)
-                SoundManager.Instance.PlayFESound("GunReady");
+                SoundManager.Instance.PlayFESound("GunReady", 0.35f);
             m_ChamberStatus.text = "Ready";
             m_ChamberStatusImage.color = m_ReadyColor;
         }

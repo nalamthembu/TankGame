@@ -10,6 +10,7 @@ using UnityEditor;
 /// </summary>
 /// 
 [RequireComponent(typeof(ObstacleAvoidance))]
+[RequireComponent(typeof(TankHealth))]
 public class AITank : BaseTank
 {
     [Header("----------AI Controls----------")]
@@ -32,7 +33,7 @@ public class AITank : BaseTank
     //by the reload time, so if you say .25 seconds that just means the tank will fire as often as it can.
     [SerializeField] [Min(0.1F)] float m_FireRateInSeconds = 2;
     [Tooltip("How far should we look for enemies?")]
-    [SerializeField] float m_CheckRadius = 40.0F;
+    [SerializeField] float m_CheckRadius = 100.00F;
     [Tooltip("How often should this tank check for surrounding enemies?")]
     [SerializeField] float m_PerimeterCheckFrequency = 3;
     [Tooltip("How far is the enemy allowed to be before we stop and look for another?")]
@@ -100,6 +101,28 @@ public class AITank : BaseTank
 
             enabled = false;
         }
+    }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        TankHealth.OnDeath += OnTankDeath;
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        TankHealth.OnDeath -= OnTankDeath;
+    }
+
+    private void OnTankDeath(BaseTank obj)
+    {
+        //Leave them alone, find a new enemy...
+        m_HasStartedAlongThePath = false;
+        m_IsFightingEnemies = false;
+        m_IsCheckingForEnemies = true;
+        m_HasDestination = false;
+        m_ClosestEnemyTank = null;
     }
 
     protected override void Update()

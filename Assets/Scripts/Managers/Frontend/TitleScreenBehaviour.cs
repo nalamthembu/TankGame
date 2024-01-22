@@ -31,7 +31,7 @@ public class TitleScreenBehaviour : MonoBehaviour
 
             if (SoundManager.Instance)
             {
-                SoundManager.Instance.PlayFESound("GunReady");
+                SoundManager.Instance.PlayFESound("GunReady", 0.35f);
             }
             else
                 Debug.LogError("There is no Sound Manager in this scene!");

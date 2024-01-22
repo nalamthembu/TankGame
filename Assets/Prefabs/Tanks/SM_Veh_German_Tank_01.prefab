@@ -6835,7 +6835,7 @@ MonoBehaviour:
   m_EngineSoundModule: {fileID: 6495489461221717605}
   m_TrackAudioSource: {fileID: 3678112558855897486}
   m_TrackSweetenerSource: {fileID: 3468090162559290117}
-  m_TrackSweetenerMaxVol: 0.5
+  m_TrackSweetenerMaxVol: 0.7
   m_MaxAudioSpeed: 30
 --- !u!114 &4346888591006848866
 MonoBehaviour:
@@ -6882,7 +6882,7 @@ MonoBehaviour:
   m_TotalAmmo: 1000
   m_CurrentClip: 0
   m_MaxClip: 1
-  m_ReloadTimeInSeconds: 3
+  m_ReloadTimeInSeconds: 2
   m_ProjectileThrust: 100
   m_ProjectileRange: 1000
   m_ShotParticleFX: {fileID: 4158670058689707563}
@@ -6892,17 +6892,17 @@ MonoBehaviour:
   m_TankBodyAudioSource: {fileID: 4448814216777030873}
   m_DebugShowValues: 1
   m_PathCheckFrequency: 1
-  m_WaitTimeBeforeReset: 10
+  m_WaitTimeBeforeReset: 5
   m_MaxReverseDistance: 5
   m_TankLayerMask:
     serializedVersion: 2
     m_Bits: 64
   m_MaxSpeed: 80
   m_ReverseWaitTime: 5
-  m_FireRateInSeconds: 4
-  m_CheckRadius: 40
-  m_PerimeterCheckFrequency: 3
-  m_MaxDistanceFromEnemy: 50
+  m_FireRateInSeconds: 1.5
+  m_CheckRadius: 100
+  m_PerimeterCheckFrequency: 1
+  m_MaxDistanceFromEnemy: 60
   m_KillThrottle: 0
 --- !u!65 &8541799729025116191
 BoxCollider:

@@ -20,14 +20,6 @@ public class HealthPickup : PickupBase
         };
     }
 
-    protected override void PlayerPickupSound()
-    {
-        //Play health pickup sound....
-
-        //Pick up particle?
-
-    }
-
     protected override void DoPlayerPickUp()
     {
         base.DoPlayerPickUp();

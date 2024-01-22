@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5695299648602718154}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -46,7 +46,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_EnemiesToSpawn:
   - {fileID: 2411073861100426863, guid: d58f5aa0742968a4a886ccb256c75898, type: 3}
+  - {fileID: 5901227539169154929, guid: a1ec2ffadf2c2ec409bf4476f52aa839, type: 3}
   - {fileID: 7067328672415257833, guid: 7420d6c2ab250694985a9538e8c6a51e, type: 3}
+  - {fileID: 5647511485211240877, guid: 1f2cfcfbf0d1fbf4db55b2afa5b05ea1, type: 3}
   m_InitialEnemyCount: 2
   m_MaxEnemies: 4
   m_EnemyAdditionOnEachWave: 1
