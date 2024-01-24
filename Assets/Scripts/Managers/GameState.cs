@@ -3,5 +3,6 @@
     NOT_RUNNING,
     PAUSED,
     RUNNING,
-    OVER
+    OVER,
+    STARTING
 }

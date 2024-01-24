@@ -128,5 +128,11 @@ public class ThirdPersonCameraSingleTarget : SingleTargetCamera
         Awake();
 
         base.Initialise(selfTransform, initialFOV);
+
+        //Load camera settings from save game.
+        if (SaveSystem.TryLoad(out var saveData))
+        {
+            m_Sensitivity = saveData.cameraSensitivity;
+        }
     }
 }

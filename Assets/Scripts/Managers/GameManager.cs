@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] Vector2 m_LevelSize = new(250, 250);
     [SerializeField] GameState m_GameState = GameState.NOT_RUNNING;
     [SerializeField] float m_TimeBeforeShowingFinalScore;
+    [SerializeField] float m_TimeBeforeStartingGame = 5.0F;
 
     [Header("----------Player Aid----------")]
     [Tooltip("How often should we spawn a pickup?")]
@@ -46,6 +47,7 @@ public class GameManager : MonoBehaviour
     float m_PickupSpawnTimer = 0;
     float m_TimeSinceStartOfGame = 0;
     float m_EndOfGameTimer = 0;
+    float m_StartOfGameTimer = 0;
 
     //Gameplay Elements
     int m_TotalKillsByPlayer = 0;
@@ -53,6 +55,8 @@ public class GameManager : MonoBehaviour
     int m_Score;
 
     //Events
+    public static event Action OnGameIsStarting;
+    public static event Action OnGameStarted;
     public static event Action OnGamePaused;
     public static event Action OnGameResume;
     public static event Action OnGameEnded;
@@ -64,6 +68,7 @@ public class GameManager : MonoBehaviour
     public int TotalKillsByPlayer { get { return m_TotalKillsByPlayer; } }
     public int WavesSurvived { get { return m_WavesSurvived; } }
     public bool GameIsPaused { get { return m_GameIsPaused; } }
+    public float StartingTimer { get { return m_StartOfGameTimer; } }
 
     private void Awake()
     {
@@ -77,7 +82,6 @@ public class GameManager : MonoBehaviour
         SpawnPlayerInRandomPosition();
     }
 
-
     private void OnEnable()
     {
         PickupBase.OnPickUp += OnPickUpRetrieved;
@@ -89,6 +93,7 @@ public class GameManager : MonoBehaviour
 
     private void OnDisable()
     {
+        PickupBase.OnPickUp -= OnPickUpRetrieved;
         PlayerTankHealth.OnDeath -= OnPlayerDeath;
         TankHealth.OnDeath -= OnAITankDeath;
         EnemyWaveGenerator.OnSpawnWave -= OnEnemyWaveSpawn;
@@ -157,24 +162,36 @@ public class GameManager : MonoBehaviour
         OnGameEnded?.Invoke();
     }
 
-    private void Start()
-    {
-        InitialiseGame();
-    }
+    private void Start() => InitialiseGame();
 
     private void InitialiseGame()
     {
         m_PickupSpawnTimer = m_PickupSpawnRate;
 
-        //TO-DO : Add timer before game starts...3,2,1, GO!
+        m_StartOfGameTimer = m_TimeBeforeStartingGame;
 
-        SetGameState(GameState.RUNNING);
+        SetGameState(GameState.STARTING);
+
+        OnGameIsStarting?.Invoke();
     }
 
     private void Update()
     {
         switch (m_GameState)
         {
+            case GameState.STARTING:
+
+                m_StartOfGameTimer -= Time.deltaTime;
+
+                if (m_StartOfGameTimer <= -1)
+                {
+                    OnGameStarted?.Invoke();
+
+                    SetGameState(GameState.RUNNING);
+                }
+
+                break;
+
             case GameState.RUNNING:
 
                 m_GameIsPaused = false;

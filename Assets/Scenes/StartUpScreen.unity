@@ -662,6 +662,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 540702194}
   m_CullTransparentMesh: 1
+--- !u!1 &669024770
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 669024772}
+  - component: {fileID: 669024771}
+  m_Layer: 0
+  m_Name: MusicManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &669024771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669024770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a308652cfcdd6143b5711dfdf1ef4c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  musicScriptable: {fileID: 11400000, guid: 8a97e367e693399458b3eafc55f1c961, type: 2}
+  m_InGameSongTitle: Alpha Mission
+  m_MenuSongTitle: CAVERNS
+--- !u!4 &669024772
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669024770}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &835067955
 GameObject:
   m_ObjectHideFlags: 0
@@ -996,6 +1043,7 @@ MonoBehaviour:
     m_LoadingScreenTipText: {fileID: 1298698871}
     m_ProgressBar: {fileID: 1511697320}
     m_LoadingScreenTips: {fileID: 11400000, guid: a451f7fb1a1ab744cbd5537fcdb266a3, type: 2}
+    m_DurationBetweenEachTip: 5
   m_BlackScreen: {fileID: 1918254231}
   m_MainMenuIndex: 1
 --- !u!4 &1136962911
@@ -2284,3 +2332,4 @@ SceneRoots:
   - {fileID: 1136962911}
   - {fileID: 59652081}
   - {fileID: 419463822}
+  - {fileID: 669024772}

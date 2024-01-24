@@ -12,6 +12,8 @@ public class GameAudioStateManager : MonoBehaviour
     [Tooltip("How fast we transition from whatever state to no sound except UI state")]
     [SerializeField] float m_FrontendOnlyTransitionTime = 3.0F;
 
+    bool m_HasPlayedCloseToDeathSound = false;
+
     private void Start()
     {
         if (!SoundManager.Instance)
@@ -44,14 +46,27 @@ public class GameAudioStateManager : MonoBehaviour
     private void OnPlayerDeath() => SwitchToDeathGameSound();
     private void OnGamePaused() => SwitchToFrontEndOnly();
 
-    private void SwitchToNormalGameSound() => SoundManager.Instance.TransitionToMixerState("Normal", m_NormalStateTransitionTime);
+    private void SwitchToNormalGameSound()
+    {
+        m_HasPlayedCloseToDeathSound = false;
+        SoundManager.Instance.TransitionToMixerState("Normal", m_NormalStateTransitionTime);
+    }
     private void SwitchToFrontEndOnly () => SoundManager.Instance.TransitionToMixerState("FrontendOnly", m_FrontendOnlyTransitionTime);
     private void SwitchToDeathGameSound()
     {
         SoundManager.Instance.TransitionToMixerState("Death", m_DeathTransitionTime);
         SoundManager.Instance.PlayFESound("Death");
     }
-    private void SwitchToLowHealthGameSound() => SoundManager.Instance.TransitionToMixerState("LowHealth", m_DeathTransitionTime);
+    private void SwitchToLowHealthGameSound()
+    {
+        if (!m_HasPlayedCloseToDeathSound)
+        {
+            SoundManager.Instance.PlayFESound("CloseToDeath");
+            m_HasPlayedCloseToDeathSound = true;
+        }
+
+        SoundManager.Instance.TransitionToMixerState("LowHealth", m_DeathTransitionTime);
+    }
 
 
     private void OnPlayerHealthChange(float health, float armor)

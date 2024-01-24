@@ -18,6 +18,8 @@ public class EnemyWaveGenerator : MonoBehaviour
 
     [SerializeField] Vector2 m_LevelSize = new(250, 250);
 
+    [SerializeField] float m_MinDistanceFromPlayer = 20;
+
     private int m_CurrentEnemyCount = 0;
 
     private int m_WaveCount;
@@ -45,10 +47,11 @@ public class EnemyWaveGenerator : MonoBehaviour
         m_CurrentEnemyCount = m_InitialEnemyCount;
     }
 
-    private void Start()
-    {
-        GenerateWave();
-    }
+    private void OnEnable() => GameManager.OnGameStarted += OnGameStarted;
+   
+    private void OnDisable() => GameManager.OnGameStarted -= OnGameStarted;
+
+    private void OnGameStarted() => GenerateWave();
 
     private void Update()
     {
@@ -86,7 +89,7 @@ public class EnemyWaveGenerator : MonoBehaviour
         {
             GameObject GOEnemy = m_EnemiesToSpawn[Random.Range(0, m_EnemiesToSpawn.Length)];
 
-            int maxIteration = 25;
+            int maxIteration = 100;
 
             Vector3 randomPosition = Vector3.zero;
 
@@ -104,6 +107,13 @@ public class EnemyWaveGenerator : MonoBehaviour
                 if (NavMesh.SamplePosition(randomPosition, out var hit, 1000.0F, NavMesh.AllAreas))
                 {
                     randomPosition = hit.position;
+
+                    if (PlayerTank.PlayerTankInstance)
+                    {
+                        //if the random distance is too close to the player do another iteration.
+                        if (Vector3.Distance(randomPosition, PlayerTank.PlayerTankInstance.transform.position) <= m_MinDistanceFromPlayer)
+                            continue;
+                    }
 
                     break;
                 }

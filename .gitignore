@@ -16,8 +16,13 @@
 /[Aa]ssets/[Tt]hirdParty/
 /[Aa]ssets/[Pp]olygonWar/
 /[Aa]ssets/[Gg]raphics/
-/[Dd]evScreenshots/
+/[Dd]ev[Ss]creenshots/
 /[Aa]ssets/TextMesh Pro/
+
+#Ignore Archives
+*.rar
+*.zip
+*.7zip
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
