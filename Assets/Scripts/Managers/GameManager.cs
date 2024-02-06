@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
     bool m_AllObjectsAreFrozen;
     bool m_GameIsPaused;
     bool m_ShownFinalScore;
+    bool m_StartedFromThisScene = true; //did we start the game in the scene from the game entry?
 
     //Timers
     float m_PickupSpawnTimer = 0;
@@ -89,6 +90,7 @@ public class GameManager : MonoBehaviour
         TankHealth.OnDeath += OnAITankDeath;
         EnemyWaveGenerator.OnSpawnWave += OnEnemyWaveSpawn;
         PauseMenuManager.OnPauseMenuClose += OnPauseMenuClose;
+        LevelManager.OnLoadingComplete += OnLoadingScreenComplete;
     }
 
     private void OnDisable()
@@ -98,6 +100,13 @@ public class GameManager : MonoBehaviour
         TankHealth.OnDeath -= OnAITankDeath;
         EnemyWaveGenerator.OnSpawnWave -= OnEnemyWaveSpawn;
         PauseMenuManager.OnPauseMenuClose -= OnPauseMenuClose;
+        LevelManager.OnLoadingComplete -= OnLoadingScreenComplete;
+    }
+
+    private void OnLoadingScreenComplete()
+    {
+        m_StartedFromThisScene = false;
+        InitialiseGame();
     }
 
     private void OnPauseMenuClose() => SetGameState(GameState.RUNNING);
@@ -162,7 +171,11 @@ public class GameManager : MonoBehaviour
         OnGameEnded?.Invoke();
     }
 
-    private void Start() => InitialiseGame();
+    private void Start()
+    {
+        if (m_StartedFromThisScene)
+            InitialiseGame();
+    }
 
     private void InitialiseGame()
     {
@@ -183,7 +196,7 @@ public class GameManager : MonoBehaviour
 
                 m_StartOfGameTimer -= Time.deltaTime;
 
-                if (m_StartOfGameTimer <= -1)
+                if (m_StartOfGameTimer <= 0)
                 {
                     OnGameStarted?.Invoke();
 

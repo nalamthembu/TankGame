@@ -20,29 +20,28 @@ public class GameStartUI : MonoBehaviour
     }
 
     private void OnGameStarted() => m_StartGameTimerGameObject.SetActive(false);
-    private void OnGameIsStarting() => m_StartGameTimerGameObject.SetActive(true);
-    
+    private void OnGameIsStarting()
+    {
+        m_StartTimerText.text = "Get Ready";
+        m_StartGameTimerGameObject.SetActive(true);
+    }
+
     private void Update()
     {
         if (GameManager.Instance)
         {
-            if (GameManager.Instance.StartingTimer <= 5)
+            switch ((int)GameManager.Instance.StartingTimer)
             {
-                m_StartTimerText.text = Mathf.Ceil(GameManager.Instance.StartingTimer).ToString();
-
-                switch (Mathf.Ceil(GameManager.Instance.StartingTimer))
-                {
-                    case 5:
-                    case 4: 
-                        m_StartTimerText.text = "Get Ready!";
-                        break;
-
-                    case 0:
-                        m_StartTimerText.text = "Go!";
-                        break;
-                }
+                case 3:
+                case 2:
+                case 1:
+                    int timer = (int)GameManager.Instance.StartingTimer;
+                    m_StartTimerText.text = timer.ToString();
+                    break;
+                case 0:
+                    m_StartTimerText.text = "Go!";
+                    break;
             }
         }
     }
-
 }
