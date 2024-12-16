@@ -10,34 +10,34 @@ public class PostProcessManager : MonoBehaviour
     [SerializeField] PostProcessVolume m_NearDeathFX;
     [SerializeField] PostProcessVolume m_PlayerHurtFX;
     [SerializeField] PostProcessVolume m_PausedFX;
-
     [SerializeField] float m_TakeDamageDuration = .5F;
-    [Tooltip("How long it takes for the screen to blur/become-clear when the pause menu is up")]
-    [SerializeField] float m_PauseMenuBlurDuration = .5F;
 
-    public static PostProcessManager Instance;
+    private static PostProcessManager _instance;
+    public static PostProcessManager Instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = FindObjectOfType<PostProcessManager>();
+            return _instance;
+        }
+    }
 
     float m_LastKnownPlayerHealth;
 
-    float m_TakeDamageTimer;
-
-    //refs
-    float m_BlurVelocityPaused;
-
     //Flags
     bool m_PlayerIsNearDeath;
-    bool m_IsPaused;
 
-    private void Awake()
-    {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+    // Coroutines
+    Coroutine OnNearDeathCoroutine;
+    Coroutine OnHealedBeforeDeathCoroutine;
+    Coroutine OnPlayerHurtCoroutine;
+    Coroutine OnPauseCoroutine;
+    Coroutine OnResumeCoroutine;
+    Coroutine OnTriggerCameraShake;
 
-        CheckForNullReferences();
-    }
-
+    private void Awake() => CheckForNullReferences();
+    
     private void CheckForNullReferences()
     {
         if (m_CameraShakeFX == null)
@@ -56,6 +56,8 @@ public class PostProcessManager : MonoBehaviour
             Debug.LogError("There is no paused fx volume assigned to the post fx manager!");
     }
 
+    #region Events
+
     private void OnEnable()
     {
         PlayerTankHealth.OnHealthChange += OnPlayerHealthChange;
@@ -63,7 +65,6 @@ public class PostProcessManager : MonoBehaviour
         GameManager.OnGamePaused += OnGamePaused;
         GameManager.OnGameResume += OnGameResume;
     }
-
     private void OnDisable()
     {
         PlayerTankHealth.OnHealthChange -= OnPlayerHealthChange;
@@ -71,105 +72,63 @@ public class PostProcessManager : MonoBehaviour
         GameManager.OnGamePaused -= OnGamePaused;
         GameManager.OnGameResume -= OnGameResume;
     }
-
-    private void OnGameResume() => m_IsPaused = false;
-    private void OnGamePaused() => m_IsPaused = true;
+    private void OnGameResume()
+    {
+        m_PausedFX.weight = 0;
+        if (m_PausedFX.enabled) m_PausedFX.enabled = false;
+    } 
+    private void OnGamePaused()
+    {
+        if (m_PausedFX.enabled == false) m_PausedFX.enabled = true;
+        m_PausedFX.weight = 1;
+    }
     private void OnPlayerTakeDamage()
     {
-        m_PlayerHurtFX.enabled = true;
-        m_PlayerHurtFX.weight = 1;
-    }
+        if (OnPlayerHurtCoroutine != null)
+            StopCoroutine(OnPlayerHurt());
 
+        OnPlayerHurtCoroutine = StartCoroutine(OnPlayerHurt());
+    }
     private void OnPlayerHealthChange(float health, float armor)
     {
         m_LastKnownPlayerHealth = health;
         m_PlayerIsNearDeath = health <= 30.0F;
-    }
 
-    private void Update()
-    {
-        ProcessPauseFX();
-
-        ProcessMainFX();
-
-        ProcessHurtFX();
-
-        ProcessDeathFX();
-    }
-
-    private void ProcessDeathFX()
-    {
-        //Only enabled the near death fx when the player is about to die...
-        m_NearDeathFX.enabled = m_PlayerIsNearDeath;
-
-        if (m_NearDeathFX.enabled)
+        // If the player is about to die
+        if (m_PlayerIsNearDeath && !m_NearDeathFX.enabled && OnNearDeathCoroutine == null)
         {
-            m_NearDeathFX.weight = m_PlayerIsNearDeath ?
-                Mathf.Lerp(m_NearDeathFX.weight, 1 - m_LastKnownPlayerHealth / 100, Time.deltaTime)
-                : Mathf.Lerp(m_NearDeathFX.weight, 0, Time.deltaTime);
-        }
-    }
-
-    private void ProcessMainFX()
-    {
-        m_MainFX.weight = m_PlayerIsNearDeath ?
-         Mathf.Lerp(m_MainFX.weight, 1 - m_NearDeathFX.weight, Time.deltaTime)
-        : Mathf.Lerp(m_MainFX.weight, 1, Time.deltaTime);
-    }
-
-    private void ProcessHurtFX()
-    {
-        if (m_PlayerHurtFX.enabled)
-        {
-            m_PlayerHurtFX.weight = Mathf.Lerp(m_PlayerHurtFX.weight, 0, Time.deltaTime);
-
-            m_TakeDamageTimer += Time.deltaTime;
-
-            if (m_TakeDamageTimer >= m_TakeDamageDuration)
+            if (OnHealedBeforeDeathCoroutine != null)
             {
-                m_PlayerHurtFX.enabled = false;
-
-                m_TakeDamageTimer = 0;
+                StopCoroutine(OnHealedBeforeDeathCoroutine);
+                OnHealedBeforeDeathCoroutine = null;
             }
-        }
-    }
 
-    private void ProcessPauseFX()
-    {
-        if (m_IsPaused)
+            OnNearDeathCoroutine = StartCoroutine(OnNearDeath());
+        }
+
+        // if the player is actually okay
+        if (!m_PlayerIsNearDeath && m_NearDeathFX.enabled && OnHealedBeforeDeathCoroutine == null)
         {
-            if (!m_PausedFX.enabled)
-                m_PausedFX.enabled = true;
+            if (OnNearDeathCoroutine != null)
+            {
+                StopCoroutine(OnNearDeathCoroutine);
+                OnNearDeathCoroutine = null;
+            }
 
-            m_PausedFX.weight =
-                Mathf.SmoothDamp(
-                    m_PausedFX.weight,
-                    1,
-                    ref m_BlurVelocityPaused,
-                    m_PauseMenuBlurDuration
-                );
-        }
-
-        if (!m_IsPaused && m_PausedFX.enabled)
-        {
-            m_PausedFX.weight =
-                    Mathf.SmoothDamp(
-                    m_PausedFX.weight,
-                    0,
-                    ref m_BlurVelocityPaused,
-                    m_PauseMenuBlurDuration
-                );
+            OnHealedBeforeDeathCoroutine = StartCoroutine(OnHealedBeforeDeath());
         }
     }
-
-    private void OnDestroy()
+    public void TriggerCameraShakeFX(float duration, float intensity)
     {
-        Instance = null;
-        Debug.Log("Destroyed Post FX Manger Instance!");
+        if (OnTriggerCameraShake != null)
+            StopCoroutine(OnTriggerCameraShake);
+
+        OnTriggerCameraShake = StartCoroutine(TriggerCamShakeFX(duration, intensity));
     }
 
-    public void TriggerCameraShakeFX(float duration, float intensity) => StartCoroutine(TriggerCamShakeFX(duration, intensity));
+    #endregion
 
+    #region Coroutines
     private IEnumerator TriggerCamShakeFX(float duration, float intensity)
     {
         if (m_CameraShakeFX != null)
@@ -221,6 +180,82 @@ public class PostProcessManager : MonoBehaviour
         }
         else
             Debug.LogError("Camera Shake FX not assigned in Post Process Manager");
+
+        Debug.Log("done (camera shake coroutine)");
     }
+
+    private IEnumerator OnHealedBeforeDeath()
+    {
+        if (!m_NearDeathFX.enabled) yield break;
+        else
+        {
+            float duration = 2;
+            float refValue = 0;
+            float targetValue = 0;
+
+            while (m_NearDeathFX.weight > targetValue)
+            {
+                m_NearDeathFX.weight = Mathf.SmoothDamp(m_NearDeathFX.weight, targetValue, ref refValue, duration);
+
+                m_MainFX.weight = 1 - m_NearDeathFX.weight;
+
+                yield return null;
+            }
+
+            m_NearDeathFX.enabled = false;
+        }
+
+        Debug.Log("done (on healed before death coroutine)");
+    }
+
+    private IEnumerator OnNearDeath()
+    {
+        Debug.Log("started (near death coroutine)");
+
+        //Only enabled the near death fx when the player is about to die...
+        m_NearDeathFX.enabled = m_PlayerIsNearDeath;
+
+        float duration = .25f;
+
+        float refValue = 0;
+        float targetValue = 1;
+
+        while (m_NearDeathFX.weight < targetValue)
+        {
+            m_NearDeathFX.weight = Mathf.SmoothDamp(m_NearDeathFX.weight, targetValue, ref refValue, duration);
+
+            // Slowly fade out the regular post processing
+            m_MainFX.weight = 1 - m_NearDeathFX.weight;
+
+            yield return null;
+        }
+
+        Debug.Log("done (near death coroutine)");
+    }
+
+    private IEnumerator OnPlayerHurt()
+    {
+        m_PlayerHurtFX.enabled = true;
+
+        // Max out the effect on hit
+        m_PlayerHurtFX.weight = 1;
+
+        float targetValue = 0;
+        float refValue = 0;
+
+        while (m_PlayerHurtFX.weight != targetValue)
+        {
+            // Fade out the effect in due time.
+            m_PlayerHurtFX.weight = Mathf.SmoothDamp(m_PlayerHurtFX.weight, targetValue, ref refValue, m_TakeDamageDuration);
+            yield return null;
+        }
+
+        // Disable the non-visible effect
+        m_PlayerHurtFX.enabled = false;
+
+        Debug.Log("done (player hurt coroutine)");
+    }
+
+    #endregion
 
 }
